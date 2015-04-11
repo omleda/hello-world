@@ -41,7 +41,7 @@ public class JFXwithJBox2d extends Application {
         primaryStage.setResizable(false);
 
         final Group root = new Group(); //Create a group for holding all objects on the screen
-        final Scene scene = new Scene(root, Utils.WIDTH, Utils.HEIGHT, Color.BLACK);
+        final Scene scene = new Scene(root, Utils.WIDTH_px, Utils.HEIGHT_px, Color.BLACK);
 
         //Ball array for hold the  balls
         final Ball[] ball = new Ball[Utils.NO_OF_BALLS];
@@ -78,10 +78,8 @@ public class JFXwithJBox2d extends Application {
                 //Move balls to the new position computed by JBox2D
                 for (int i = 0; i < Utils.NO_OF_BALLS; i++) {
                     Body body = (Body) ball[i].node.getUserData();
-                    float xpos = Utils.toPixelPosX(body.getPosition().x);
-                    float ypos = Utils.toPixelPosY(body.getPosition().y);
-                    ball[i].node.setLayoutX(xpos);
-                    ball[i].node.setLayoutY(ypos);
+                    ball[i].node.setLayoutX(Utils.toPixelPosX(body.getPosition().x));
+                    ball[i].node.setLayoutY(Utils.toPixelPosY(body.getPosition().y));
                 }
             }
         };
@@ -97,8 +95,8 @@ public class JFXwithJBox2d extends Application {
 
         //Create button to start simulation.
         final Button btn = new Button();
-        btn.setLayoutX((Utils.WIDTH / 2));
-        btn.setLayoutY((Utils.HEIGHT - 30));
+        btn.setLayoutX((Utils.WIDTH_px / 2));
+        btn.setLayoutY((Utils.HEIGHT_px - 30));
         btn.setText("Start");
         btn.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {

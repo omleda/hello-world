@@ -3,11 +3,8 @@ package tutorialFX;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.LinearGradient;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
-import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.collision.shapes.PolygonShape;
-import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
@@ -47,7 +44,7 @@ public class Limb {
      * @param posY
      */
     public Limb(float posX, float posY) {
-        this(posX, posY, Utils.BALL_SIZE,Utils.BALL_SIZE, BodyType.DYNAMIC, Color.RED);
+        this(posX, posY, Utils.LIMB_SIZE * 2, Utils.LIMB_SIZE, BodyType.DYNAMIC, Color.RED);
     }
 
     /**
@@ -74,28 +71,23 @@ public class Limb {
      */
     private Node create() {
         //Create an UI for ball - JavaFX code
-        Rectangle ball = new Rectangle();
+        Rectangle fxBox = new Rectangle();
 
-        ball.setHeight(Utils.toPixelHeight(h));
-        ball.setWidth(Utils.toPixelWidth(w));
-        ball.setFill(gradient); //set look and feel
+        fxBox.setHeight(Utils.toPixelHeight(h));
+        fxBox.setWidth(Utils.toPixelWidth(w));
+        fxBox.setFill(gradient); //set look and feel
 
-        /**
-         * Set ball position on JavaFX scene. We need to convert JBox2D coordinates
-         * to JavaFX coordinates which are in pixels.
-         */
-        ball.setLayoutX(Utils.toPixelPosX(posX));
-        ball.setLayoutY(Utils.toPixelPosY(posY));
 
-        ball.setCache(true); //Cache this object for better performance
+        fxBox.setCache(true); //Cache this object for better performance
 
-        //Create an JBox2D body defination for ball.
+        //Create an JBox2D body definition for ball.
         BodyDef bd = new BodyDef();
         bd.type = bodyType;
         bd.position.set(posX, posY);
+        bd.setBullet(true);
 
         PolygonShape cs = new PolygonShape();
-        cs.setAsBox(h*0.1f,w*0.1f);
+        cs.setAsBox(w / 2f, h / 2f);
 //        cs.m_radius = radius * 0.1f;  //We need to convert radius to JBox2D equivalent
 
         // Create a fixture for ball
@@ -105,13 +97,22 @@ public class Limb {
         fd.friction = 0.3f;
         fd.restitution = 0.6f;
 
+
         /**
          * Virtual invisible JBox2D body of ball. Bodies have velocity and position.
          * Forces, torques, and impulses can be applied to these bodies.
          */
         Body body = Utils.world.createBody(bd);
         body.createFixture(fd);
-        ball.setUserData(body);
-        return ball;
+        fxBox.setUserData(body);
+
+        /**
+         * Set ball position on JavaFX scene. We need to convert JBox2D coordinates
+         * to JavaFX coordinates which are in pixels.
+         */
+        fxBox.setLayoutX(Utils.toPixelPosX(body.getWorldCenter().x));
+        fxBox.setLayoutY(Utils.toPixelPosY(body.getWorldCenter().y));
+
+        return fxBox;
     }
 }

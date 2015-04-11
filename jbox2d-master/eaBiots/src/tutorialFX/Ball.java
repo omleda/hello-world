@@ -23,7 +23,7 @@ public class Ball {
     private float posY;
 
     //Ball radius in pixels
-    private int radius;
+    private float radius;
 
     /**
      * There are three types bodies in JBox2D – Static, Kinematic and dynamic
@@ -43,7 +43,7 @@ public class Ball {
      * @param posY
      */
     public Ball(float posX, float posY) {
-        this(posX, posY, Utils.BALL_SIZE, BodyType.DYNAMIC, Color.RED);
+        this(posX, posY, Utils.LIMB_SIZE, BodyType.DYNAMIC, Color.RED);
     }
 
     /**
@@ -55,7 +55,7 @@ public class Ball {
      * @param bodyType
      * @param color
      */
-    public Ball(float posX, float posY, int radius, BodyType bodyType, Color color) {
+    public Ball(float posX, float posY, float radius, BodyType bodyType, Color color) {
         this.posX = posX;
         this.posY = posY;
         this.radius = radius;
@@ -83,13 +83,13 @@ public class Ball {
 
         ball.setCache(true); //Cache this object for better performance
 
-        //Create an JBox2D body defination for ball.
+        //Create an JBox2D body definition for ball.
         BodyDef bd = new BodyDef();
         bd.type = bodyType;
         bd.position.set(posX, posY);
 
         CircleShape cs = new CircleShape();
-        cs.m_radius = radius * 0.1f;  //We need to convert radius to JBox2D equivalent
+        cs.m_radius = Utils.toDistance(radius) * 0.1f;  //We need to convert radius to JBox2D equivalent
 
         // Create a fixture for ball
         FixtureDef fd = new FixtureDef();
