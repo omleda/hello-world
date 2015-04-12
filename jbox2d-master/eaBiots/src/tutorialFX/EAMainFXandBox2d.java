@@ -135,9 +135,11 @@ public class EAMainFXandBox2d extends Application {
                 }
 
                 for (Limb dead : died) {
-                    Utils.world.destroyBody(dead.bodyd2);
-                    biot.remove(dead);
-                    root.getChildren().remove(dead.node);
+                    if (dead.age - dead.deadSince > 120 ) { // let them float around for 2s
+                        Utils.world.destroyBody(dead.bodyd2);
+                        biot.remove(dead);
+                        root.getChildren().remove(dead.node);
+                    }
                 }
 
                 died.clear();
