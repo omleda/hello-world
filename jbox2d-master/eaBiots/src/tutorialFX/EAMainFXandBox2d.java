@@ -14,6 +14,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.jbox2d.collision.AABB;
@@ -24,7 +25,7 @@ import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.Fixture;
 
-import java.util.Random;
+import java.util.ArrayList;
 
 /**
  * @author dilip
@@ -49,25 +50,28 @@ public class EAMainFXandBox2d extends Application {
         final Scene scene = new Scene(root, Utils.WIDTH_px, Utils.HEIGHT_px, Color.BLACK);
 
         //Ball array for hold the  balls
-        final Limb[] biot = new Limb[Utils.NO_OF_BALLS];
+        final ArrayList<Limb> biot = new ArrayList<Limb>();
 
-        Random r = new Random(System.currentTimeMillis());
+
+        Utils.world.setContactListener(new MyContactListener());
+
 
         /**
          * Generate Biot and position them on random locations.
          * Random locations between 5 to 95 on x axis and between 100 to 500 on y axis
          */
         for (int i = 0; i < Utils.NO_OF_BALLS; i++) {
-            biot[i] = new Limb(Utils.WIDTHd2 / 2 + 5 * i, Utils.HEIGHTd2 / 2 + 5 * i);
+            final Limb e = new Limb(Utils.WIDTHd2 / 2 + (Utils.LIMB_SIZE + 1) * i,  // Xpos
+                    Utils.HEIGHTd2 / 2 + (Utils.LIMB_SIZE + 1) * i, // YPos
+                    (i % 2 == 0 ? Limb.LimbTyp.EATER : Limb.LimbTyp.ENERGY),
+                    0, // gneration
+                    Utils.LIMB_SIZE, // width
+                    Utils.LIMB_SIZE // heigh
+            );
+
+            goLive(root, biot, e);
+
         }
-
-        //Add ground to the application, this is where balls will land
-//        Utils.addGround(100, 10);
-
-
-        //Add left and right walls so balls will not move outside the viewing area.
-//        Utils.addWall(0, 100, 1, 100); //Left wall
-//        Utils.addWall(99, 100, 1, 100); //Right wall
 
         Utils.fourWalls();
 
@@ -78,16 +82,24 @@ public class EAMainFXandBox2d extends Application {
 
         //Create an ActionEvent, on trigger it executes a world time step and moves the balls to new position
         EventHandler<ActionEvent> ae = new EventHandler<ActionEvent>() {
+            public static final int MAX_BIOTS = 100;
+
             public void handle(ActionEvent t) {
                 //Create time step. Set Iteration count 8 for velocity and 3 for positions
                 Utils.world.step(1.0f / 60.f, 8, 3);
 
                 //Move balls to the new position computed by JBox2D
-                for (int i = 0; i < Utils.NO_OF_BALLS; i++) {
-                    Body body = (Body) biot[i].node.getUserData();
+                final ArrayList<Limb> died = new ArrayList<Limb>();
+                final ArrayList<Limb> born = new ArrayList<Limb>();
+
+                for (Limb limb : biot) {
+//                }
+//                for (int i = 0; i < Utils.NO_OF_BALLS; i++) {
+//                    final Limb limb = biot.get(i);
+                    Body body = (Body) limb.node.getUserData();
 
 
-                    // die richtig postion des FXRechtecks muss ausgerechnet werden:
+                    // die richtige position des FXRechtecks muss ausgerechnet werden: ??!! wie macht man das wirklich??
                     final Transform transform = new Transform();
                     AABB aabb = new AABB(new Vec2(Float.MAX_VALUE, Float.MAX_EXPONENT), new Vec2(Float.MIN_VALUE, Float.MIN_VALUE));
 
@@ -109,11 +121,35 @@ public class EAMainFXandBox2d extends Application {
                         fixture = fixture.getNext();
                     }
                     final Vec2 extents = aabb.getExtents();
+                    ////   jetzt haben wir die bouding box, aber die ist ja zu gross!
 
-                    biot[i].node.setLayoutX(Utils.toPixelPosX(body.getPosition().x - extents.x));
-                    biot[i].node.setLayoutY(Utils.toPixelPosY(body.getPosition().y + extents.y));
-                    biot[i].node.setRotate(Math.toDegrees(body.getAngle()));
+                    // draw position it
+                    limb.node.setLayoutX(Utils.toPixelPosX(body.getPosition().x - extents.x));
+                    limb.node.setLayoutY(Utils.toPixelPosY(body.getPosition().y + extents.y));
+                    limb.node.setRotate(Math.toDegrees(body.getAngle()));
+
+                    ((Rectangle) limb.node).setFill(limb.getFill());
+
+                    limb.updateEnergy(died, born);
+
                 }
+
+                for (Limb dead : died) {
+                    Utils.world.destroyBody(dead.bodyd2);
+                    biot.remove(dead);
+                    root.getChildren().remove(dead.node);
+                }
+
+                died.clear();
+
+                if (biot.size() < MAX_BIOTS) {
+                    for (Limb limb : born) {
+                        limb.createBodyAndNode();
+                        goLive(root, biot, limb);
+                    }
+                }
+                born.clear();
+
             }
         };
 
@@ -142,9 +178,9 @@ public class EAMainFXandBox2d extends Application {
         root.getChildren().add(btn);
 
         //Add all balls to the root group
-        for (int i = 0; i < Utils.NO_OF_BALLS; i++) {
-            root.getChildren().add(biot[i].node);
-        }
+//        for (int i = 0; i < Utils.NO_OF_BALLS; i++) {
+//            root.getChildren().add(biot.get(i).node);
+//        }
 
         //Draw hurdles on mouse event.
         EventHandler<MouseEvent> addHurdle = new EventHandler<MouseEvent>() {
@@ -164,5 +200,11 @@ public class EAMainFXandBox2d extends Application {
 
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void goLive(Group root, ArrayList<Limb> biot, Limb e) {
+        e.createBodyAndNode();
+        biot.add(e);
+        root.getChildren().add(e.node);
     }
 }

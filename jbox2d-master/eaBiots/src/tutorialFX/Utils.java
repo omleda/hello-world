@@ -20,8 +20,8 @@ public class Utils {
     public static final int WIDTH_px = 500;
     public static final int HEIGHT_px = 500;
 
-    public static final float WIDTHd2 = 100f;
-    public static final float HEIGHTd2 = 100f;
+    public static final float WIDTHd2 = 200f;
+    public static final float HEIGHTd2 = 200f;
 
 
     //Ball radius in pixel
@@ -30,8 +30,7 @@ public class Utils {
     //Total number of balls
     public final static int NO_OF_BALLS = 10;
 
-    //Ball gradient
-    private final static LinearGradient LIMB_GRADIENT = new LinearGradient(0.0, 0.0, 1.0, 0.0, true, CycleMethod.NO_CYCLE, new Stop(0, Color.WHITE), new Stop(1, Color.RED));
+
 
     //This method adds a ground to the screen.
     public static void addGround(float width, float height) {
@@ -59,7 +58,7 @@ public class Utils {
 
         FixtureDef fd = new FixtureDef();
         //  parameter die bei allen Fixtures gelten
-        fd.setRestitution(1.2f);
+        fd.setRestitution(1.3f);
 
 
         // dann die shapes
@@ -92,7 +91,7 @@ public class Utils {
         FixtureDef fd = new FixtureDef();
         fd.shape = ps;
         fd.density = 1.0f;
-        fd.friction = 0.3f;
+        fd.friction = 0.8f;
 
         BodyDef bd = new BodyDef();
         bd.position.set(posX, posY);
