@@ -26,16 +26,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5cf645ec-b1e0-4566-b349-7e5296d26b54" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/classes/production/eaBiots/tutorialFX/EAMainFXandBox2d$1.class" afterPath="$PROJECT_DIR$/classes/production/eaBiots/tutorialFX/EAMainFXandBox2d$1.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/classes/production/eaBiots/tutorialFX/EAMainFXandBox2d$2.class" afterPath="$PROJECT_DIR$/classes/production/eaBiots/tutorialFX/EAMainFXandBox2d$2.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/classes/production/eaBiots/tutorialFX/EAMainFXandBox2d$3.class" afterPath="$PROJECT_DIR$/classes/production/eaBiots/tutorialFX/EAMainFXandBox2d$3.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/classes/production/eaBiots/tutorialFX/EAMainFXandBox2d.class" afterPath="$PROJECT_DIR$/classes/production/eaBiots/tutorialFX/EAMainFXandBox2d.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/classes/production/eaBiots/tutorialFX/Limb.class" afterPath="$PROJECT_DIR$/classes/production/eaBiots/tutorialFX/Limb.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/classes/production/eaBiots/tutorialFX/Utils.class" afterPath="$PROJECT_DIR$/classes/production/eaBiots/tutorialFX/Utils.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/eaBiots/src/tutorialFX/EAMainFXandBox2d.java" afterPath="$PROJECT_DIR$/eaBiots/src/tutorialFX/EAMainFXandBox2d.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/eaBiots/src/tutorialFX/Limb.java" afterPath="$PROJECT_DIR$/eaBiots/src/tutorialFX/Limb.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
-    <list id="c9aead0c-4dd0-4cfc-86f2-0884f42f6613" name="Rejected commit: Default" comment="" />
+    <list id="60bc2be1-962d-4dc3-a7f9-4662de0239fa" name="classes should be ignored" comment="" />
     <ignored path="jbox2d.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path="$PROJECT_DIR$/jbox2d-serialization/target/" />
@@ -44,6 +37,7 @@
     <ignored path="$PROJECT_DIR$/jbox2d-testbed/target/" />
     <ignored path="$PROJECT_DIR$/jbox2d-library/target/" />
     <ignored path=".idea/dataSources.local.xml" />
+    <ignored mask="*.class" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -88,8 +82,8 @@
       <file leaf-file-name="EAMainFXandBox2d.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/eaBiots/src/tutorialFX/EAMainFXandBox2d.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.28742516">
-              <caret line="119" column="25" selection-start-line="119" selection-start-column="25" selection-end-line="119" selection-end-column="25" />
+            <state vertical-scroll-proportion="0.6627907">
+              <caret line="43" column="0" selection-start-line="43" selection-start-column="0" selection-end-line="43" selection-end-column="0" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#6275#6465#0" expanded="true" />
@@ -713,6 +707,7 @@
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="5cf645ec-b1e0-4566-b349-7e5296d26b54" name="Default" comment="" />
+      <changelist id="60bc2be1-962d-4dc3-a7f9-4662de0239fa" name="classes should be ignored" comment="" />
       <created>1426949012355</created>
       <option name="number" value="Default" />
       <updated>1426949012355</updated>
@@ -734,7 +729,7 @@
       <workItem from="1428562487630" duration="248000" />
       <workItem from="1428763887632" duration="662000" />
       <workItem from="1428764602501" duration="25800000" />
-      <workItem from="1428826341031" duration="2554000" />
+      <workItem from="1428826341031" duration="2859000" />
     </task>
     <task id="LOCAL-00001" summary="correct placing of rectangles">
       <created>1428776753429</created>
@@ -748,15 +743,21 @@
       <option name="project" value="LOCAL" />
       <updated>1428826707047</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="classes must not be in git">
+      <created>1428829667104</created>
+      <option name="number" value="00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1428829667104</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="51403000" />
+    <option name="totallyTimeSpent" value="51708000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="44" y="23" width="1566" height="1417" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -770,14 +771,14 @@
       <window_info id="TeamCity" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32981133" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32981133" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32754716" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.20297427" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24868767" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.34867924" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.34867924" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Documentation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="FLOATING" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" x="130" y="123" width="2330" height="1217" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -824,7 +825,8 @@
     <option name="CHECK_NEW_TODO" value="false" />
     <MESSAGE value="correct placing of rectangles" />
     <MESSAGE value="tryp to exclude class fils from git" />
-    <option name="LAST_COMMIT_MESSAGE" value="tryp to exclude class fils from git" />
+    <MESSAGE value="classes must not be in git" />
+    <option name="LAST_COMMIT_MESSAGE" value="classes must not be in git" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1231,8 +1233,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/eaBiots/src/tutorialFX/EAMainFXandBox2d.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.28742516">
-          <caret line="119" column="25" selection-start-line="119" selection-start-column="25" selection-end-line="119" selection-end-column="25" />
+        <state vertical-scroll-proportion="0.6627907">
+          <caret line="43" column="0" selection-start-line="43" selection-start-column="0" selection-end-line="43" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#6275#6465#0" expanded="true" />
