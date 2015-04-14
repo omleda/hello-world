@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact name="jbox2d-library:GWT">
-    <output-path>$PROJECT_DIR$/classes/artifacts/jbox2d_library_GWT</output-path>
-    <root id="root">
-      <element id="gwt-compiler-output" facet="jbox2d-library/gwt/GWT" />
-    </root>
-  </artifact>
-</component>

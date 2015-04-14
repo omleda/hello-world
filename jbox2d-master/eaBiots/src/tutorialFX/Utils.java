@@ -58,7 +58,7 @@ public class Utils {
 
         FixtureDef fd = new FixtureDef();
         //  parameter die bei allen Fixtures gelten
-        fd.setRestitution(1.3f);
+        fd.setRestitution(1.2f);
 
 
         // dann die shapes

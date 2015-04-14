@@ -17,29 +17,36 @@ import java.util.Random;
 public class Limb {
 
 
+    private static long s_IDMAX = 0;
+
     private static final float EAT_EFFICIENCY = 0.6f;
     private static final long SUNRADIATION = 3;
     private static final long LIVINGCost = 1;
     private static final long MAXAGE = 8500;
     private static final int MinBIRTHENERGY = 6000;
-    private static long s_IDMAX = 0;
+
     private final LimbTyp limbTyp;
     private final long id;
     //JavaFX UI for limb
     public Node node;
     protected Body bodyd2;
-    Random r = new Random(System.currentTimeMillis());
-    long liveEnergy = 120;
-    long age = 0;
-    long deadSince = -1;
-    long generation;
+
+    private Random r = new Random(System.currentTimeMillis());
+    private long liveEnergy = 120;
+    private long age = 0;
+    private long deadSince = -1;
+    private long generation;
     //X and Y position of the limb in JBox2D world
     private float posX;
     private float posY;
     //limbs width and height in JBox2D world
-    private float w;
-    private float h;
+    public float w;
+    protected float h;
     private HashMap<Limb, Integer> touchingLimbs = new HashMap<Limb, Integer>();
+    private float density;
+    private float friction;
+    private float restitution;
+
     /**
      * Create a red ball
      *
@@ -76,14 +83,29 @@ public class Limb {
         Color color = limbTyp.getColor();
         if (liveEnergy <= 0 || deadSince > 0) color = Color.PURPLE;
         if (touchingLimbs.size() > 0) {
+            if (generation > 0) {
+                System.err.println(this + " touching = " + touchingLimbs);
+            }
             return color;
         } else return Utils.getBallGradient(color);
+    }
+
+    private Limb kill() {
+        if (isDead()) return this;
+        deadSince = age;
+        return this;
     }
 
 
     public void updateEnergy(ArrayList<Limb> died, ArrayList<Limb> born) {
         age += 1;
-        if (died.contains(this)) return;
+
+        if (died.contains(this)) {
+            return;
+        }
+        if (isDead()) {
+            died.add(this);
+        }
 
         // sun radiation gives energy to green ones only!
         switch (limbTyp) {
@@ -93,20 +115,9 @@ public class Limb {
                         float limbRation = w * h / other.w / other.h;
                         final long l = Math.max(0, Math.round(EAT_EFFICIENCY * limbRation * other.liveEnergy));
                         liveEnergy += l;
-                        other.liveEnergy -= l;
-
-                        if (other.liveEnergy <= 0) {
-                            died.add(other);
-                            other.deadSince = age;
-                        }
+                        other.removeEnergy(died, l);
                     }
-
-                    liveEnergy -= LIVINGCost;
-                    if (liveEnergy <= 0) {
-                        died.add(this);
-                        this.deadSince = age;
-                    }
-
+                    removeEnergy(died, LIVINGCost);
                 }
 
                 break;
@@ -115,14 +126,12 @@ public class Limb {
         }
 
 
-
 //        if (age % 100 == 0) {
 //            System.err.println(this);
 //        }
 
         if (age > MAXAGE) {
-            died.add(this);
-            this.deadSince = age;
+            died.add(this.kill());
         }
 
         if (liveEnergy > MinBIRTHENERGY) {
@@ -141,9 +150,17 @@ public class Limb {
 
     }
 
+    private void removeEnergy(ArrayList<Limb> died, long livingCost) {
+        liveEnergy -= livingCost;
+        if (liveEnergy <= 0) {
+            died.add(this.kill());
+        }
+    }
+
+
     @Override
     public String toString() {
-        return ("Limb#" + id + ": gen=" + generation + " age=" + age + " energy=" + liveEnergy);
+        return ("Limb#" + id + ": gen=" + generation + " age=" + age + " deadSince=" + deadSince + " energy=" + liveEnergy);
     }
 
     protected void createBodyAndNode() {
@@ -169,14 +186,15 @@ public class Limb {
         fxBox.setCache(true); //Cache this object for better performance
 
 
+        //TODO:  shouldn't we set the limb ??
         fxBox.setUserData(bodyd2);
 
         /**
          * Set ball position on JavaFX scene. We need to convert JBox2D coordinates
          * to JavaFX coordinates which are in pixels.
          */
-        fxBox.setLayoutX(Utils.toPixelPosX(bodyd2.getPosition().x - w));
-        fxBox.setLayoutY(Utils.toPixelPosY(bodyd2.getPosition().y + h));
+        fxBox.setLayoutX(Utils.toPixelPosX(bodyd2.getPosition().x /*- w / 2f*/));
+        fxBox.setLayoutY(Utils.toPixelPosY(bodyd2.getPosition().y + h / 2f));
 
         return fxBox;
     }
@@ -187,19 +205,23 @@ public class Limb {
         BodyDef bd = new BodyDef();
         bd.type = BodyType.DYNAMIC;
         bd.position.set(posX, posY);
-        bd.setBullet(false);
+        bd.setBullet(true);
         bd.allowSleep = true;
 
         PolygonShape cs = new PolygonShape();
         cs.setAsBox(w / 2f, h / 2f);
-//        cs.m_radius = radius * 0.1f;  //We need to convert radius to JBox2D equivalent
 
         // Create a fixture for ball
         FixtureDef fd = new FixtureDef();
         fd.shape = cs;
-        fd.density = 0.9f;
-        fd.friction = 0.3f;
-        fd.restitution = 0.8f;
+
+        //todo:  three parameters to evolve
+        density = 0.9f;
+        fd.density = density;
+        friction = 0.3f;
+        fd.friction = friction;
+        restitution = 0.8f;
+        fd.restitution = restitution;
 
         bodyd2 = Utils.world.createBody(bd);
         /**
@@ -212,23 +234,40 @@ public class Limb {
     }
 
     public void startContact(Limb other) {
-        Integer counter = touchingLimbs.get(other);
-        if (counter == null) {
-            counter = 1;
+
+        if (other.isDead() || other == this) {
+            touchingLimbs.remove(other);
         } else {
-            counter = counter + 1;
+            Integer counter = touchingLimbs.get(other);
+            if (counter == null) {
+                counter = 1;
+            } else {
+                counter = counter + 1;
+            }
+            touchingLimbs.put(other, counter);
         }
-        touchingLimbs.put(other, counter);
     }
 
     public void endContact(Limb other) {
-        Integer counter = touchingLimbs.get(other);
-        if (counter == null) {
-            counter = 0;
+        if (other.isDead() || other == this) {
+            touchingLimbs.remove(other);
         } else {
-            counter = counter - 1;
+            Integer counter = touchingLimbs.get(other);
+            if (counter == null) {
+                counter = 0;
+            } else {
+                counter = counter - 1;
+            }
+            if (counter <= 0) touchingLimbs.remove(other);
         }
-        if (counter <= 0) touchingLimbs.remove(other);
+    }
+
+    public boolean isDead() {
+        return deadSince > 0;
+    }
+
+    public boolean isDeadSince(int i) {
+        return age - deadSince > i;
     }
 
 

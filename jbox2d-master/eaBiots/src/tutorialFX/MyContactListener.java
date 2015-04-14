@@ -20,7 +20,6 @@ public class MyContactListener implements ContactListener {
             ((Limb) limbb).startContact((Limb) limba);
         }
         // what else??
-
     }
 
     @Override

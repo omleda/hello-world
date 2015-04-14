@@ -100,32 +100,34 @@ public class EAMainFXandBox2d extends Application {
 
 
                     // die richtige position des FXRechtecks muss ausgerechnet werden: ??!! wie macht man das wirklich??
-                    final Transform transform = new Transform();
-                    AABB aabb = new AABB(new Vec2(Float.MAX_VALUE, Float.MAX_EXPONENT), new Vec2(Float.MIN_VALUE, Float.MIN_VALUE));
-
-                    Fixture fixture = body.getFixtureList();
-                    while (fixture != null) {
-                        final Shape shape = fixture.getShape();
-                        final int childCount = shape.getChildCount();
-
-                        for (int child = 0; child < childCount; child++) {
-                            AABB shapeAABB = new AABB();
-                            shape.computeAABB(shapeAABB, transform, child);
-                            final float radius = shape.getRadius();
-                            aabb.upperBound.x -= radius;
-                            aabb.upperBound.y -= radius;
-                            aabb.lowerBound.x += radius;
-                            aabb.lowerBound.y += radius;
-                            aabb.combine(shapeAABB);
-                        }
-                        fixture = fixture.getNext();
-                    }
-                    final Vec2 extents = aabb.getExtents();
+//                    final Transform transform = new Transform();
+//                    AABB aabb = new AABB(new Vec2(Float.MAX_VALUE, Float.MAX_EXPONENT), new Vec2(Float.MIN_VALUE, Float.MIN_VALUE));
+//
+//                    Fixture fixture = body.getFixtureList();
+//                    while (fixture != null) {
+//                        final Shape shape = fixture.getShape();
+//                        final int childCount = shape.getChildCount();
+//
+//                        for (int child = 0; child < childCount; child++) {
+//                            AABB shapeAABB = new AABB();
+//                            shape.computeAABB(shapeAABB, transform, child);
+//                            final float radius = shape.getRadius();
+//                            aabb.upperBound.x -= radius;
+//                            aabb.upperBound.y -= radius;
+//                            aabb.lowerBound.x += radius;
+//                            aabb.lowerBound.y += radius;
+//                            aabb.combine(shapeAABB);
+//                        }
+//                        fixture = fixture.getNext();
+//                    }
+//                    final Vec2 extents = aabb.getExtents();
                     ////   jetzt haben wir die bouding box, aber die ist ja zu gross!
+//                    limb.node.setLayoutX(Utils.toPixelPosX(body.getPosition().x - extents.x));
+//                    limb.node.setLayoutY(Utils.toPixelPosY(body.getPosition().y + extents.y));
 
                     // draw position it
-                    limb.node.setLayoutX(Utils.toPixelPosX(body.getPosition().x - extents.x));
-                    limb.node.setLayoutY(Utils.toPixelPosY(body.getPosition().y + extents.y));
+                    limb.node.setLayoutX(Utils.toPixelPosX(body.getPosition().x - limb.w/2f));
+                    limb.node.setLayoutY(Utils.toPixelPosY(body.getPosition().y + limb.h / 2f));
                     limb.node.setRotate(Math.toDegrees(body.getAngle()));
 
                     ((Rectangle) limb.node).setFill(limb.getFill());
@@ -135,14 +137,16 @@ public class EAMainFXandBox2d extends Application {
                 }
 
                 for (Limb dead : died) {
-                    if (dead.age - dead.deadSince > 120 ) { // let them float around for 2s
+                    assert dead.isDead() : dead + " is not dead!? ";
+                    if (dead.isDeadSince(120) ) { // let them float around for 2s
                         Utils.world.destroyBody(dead.bodyd2);
                         biot.remove(dead);
                         root.getChildren().remove(dead.node);
+//                    } else {
+//                        System.err.println("zomby = " + dead);
                     }
-                }
 
-                died.clear();
+                }
 
                 if (biot.size() < MAX_BIOTS) {
                     for (Limb limb : born) {
@@ -150,7 +154,6 @@ public class EAMainFXandBox2d extends Application {
                         goLive(root, biot, limb);
                     }
                 }
-                born.clear();
 
             }
         };

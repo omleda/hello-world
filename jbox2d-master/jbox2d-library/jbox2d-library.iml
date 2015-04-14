@@ -5,10 +5,7 @@
       <configuration>
         <setting name="compilerMaxHeapSize" value="1024" />
         <setting name="gwtScriptOutputStyle" value="DETAILED" />
-        <setting name="gwtSdkUrl" value="file://$MODULE_DIR$/../../gwt-2.7.0" />
-        <packaging>
-          <module name="org.jbox2d.JBox2D" enabled="false" />
-        </packaging>
+        <setting name="gwtSdkUrl" value="file://$MODULE_DIR$/../../../jbox2d/gwt-2.7.0" />
       </configuration>
     </facet>
   </component>
@@ -22,7 +19,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="gwt-user" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.8.2" level="project" />
+    <orderEntry type="library" name="gwt-user" level="project" />
   </component>
 </module>
