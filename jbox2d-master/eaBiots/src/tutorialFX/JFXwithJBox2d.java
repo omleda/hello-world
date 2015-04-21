@@ -16,8 +16,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.jbox2d.collision.shapes.PolygonShape;
+import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
+import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
+import org.jbox2d.dynamics.FixtureDef;
 
 import java.util.Random;
 
@@ -32,6 +36,39 @@ public class JFXwithJBox2d extends Application {
     public static void main(String[] args) {
         Application.launch(args);
     }
+
+    //This method adds a ground to the screen.
+    public static void addGround(float width, float height) {
+        PolygonShape ps = new PolygonShape();
+        ps.setAsBox(width, height);
+
+        FixtureDef fd = new FixtureDef();
+        fd.shape = ps;
+
+        BodyDef bd = new BodyDef();
+
+        bd.position = new Vec2(0.0f, -10f);
+
+        Utils.world.createBody(bd).createFixture(fd);
+    }
+
+    //This method creates a walls.
+    public static void addWall(float posX, float posY, float width, float height) {
+        PolygonShape ps = new PolygonShape();
+        ps.setAsBox(width, height);
+
+        FixtureDef fd = new FixtureDef();
+        fd.shape = ps;
+        fd.density = 1.0f;
+        fd.friction = 0.8f;
+
+        BodyDef bd = new BodyDef();
+        bd.position.set(posX, posY);
+
+        Utils.world.createBody(bd).createFixture(fd);
+    }
+
+
 
     @Override
     public void start(Stage primaryStage) {
@@ -57,11 +94,11 @@ public class JFXwithJBox2d extends Application {
         }
 
         //Add ground to the application, this is where balls will land
-        Utils.addGround(100, 10);
+        addGround(100, 10);
 
         //Add left and right walls so balls will not move outside the viewing area.
-        Utils.addWall(0, 100, 1, 100); //Left wall
-        Utils.addWall(99, 100, 1, 100); //Right wall
+        addWall(0, 100, 1, 100); //Left wall
+        addWall(99, 100, 1, 100); //Right wall
 
 
         final Timeline timeline = new Timeline();

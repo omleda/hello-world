@@ -60,7 +60,7 @@ public class Ball {
         this.posY = posY;
         this.radius = radius;
         this.bodyType = bodyType;
-        this.gradient = Utils.getBallGradient(color);
+        this.gradient = Utils.getGradient(color);
         node = create();
     }
 

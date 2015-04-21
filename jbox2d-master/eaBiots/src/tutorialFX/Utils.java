@@ -8,6 +8,8 @@ import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
 
+import java.util.Random;
+
 /**
  * @author dilip then ea
  */
@@ -20,11 +22,10 @@ public class Utils {
     public static final int WIDTH_px = 500;
     public static final int HEIGHT_px = 500;
 
-    public static final float WIDTHd2 = 300f;
-    public static final float HEIGHTd2 = 300f;
+    public static final float WIDTHd2 = 330f;
+    public static final float HEIGHTd2 = 330f;
 
-
-    //Ball radius in pixel
+    //Initial size in pixel
     public static final float LIMB_SIZE = 5f;
 
     //Total number of limbs
@@ -32,20 +33,18 @@ public class Utils {
     public static final int MAX_BIOTS = 250;
 
 
-    //This method adds a ground to the screen.
-    public static void addGround(float width, float height) {
-        PolygonShape ps = new PolygonShape();
-        ps.setAsBox(width, height);
+    ///////// interaction constants
+    static final int MinBIRTHENERGY = 6000;
+    static final long MAXAGE = 8500;
 
-        FixtureDef fd = new FixtureDef();
-        fd.shape = ps;
+    static final float EAT_EFFICIENCY = 5.1f;
 
-        BodyDef bd = new BodyDef();
+    static final float SUNRADIATION = 29f / 25f;
 
-        bd.position = new Vec2(0.0f, -10f);
+    static final float LIVINGCost = 0.04f;
 
-        world.createBody(bd).createFixture(fd);
-    }
+    // the random generator
+    static Random r = new Random(System.currentTimeMillis());
 
 
     public static void fourWalls() {
@@ -63,48 +62,32 @@ public class Utils {
 
         // dann die shapes
         PolygonShape polygonShape = new PolygonShape();
-        polygonShape.setAsBox(WIDTHd2/2, 1f, new Vec2(WIDTHd2 / 2, 0), 0f);  // BODEN
+        polygonShape.setAsBox(WIDTHd2 / 2, 1f, new Vec2(WIDTHd2 / 2, 0), 0f);  // BODEN
         fd.setShape(polygonShape); // zur FD
         staticBody.createFixture(fd); // diese fixture muss zum Body
 
-        polygonShape.setAsBox(WIDTHd2/2, 1f, new Vec2(WIDTHd2 / 2, HEIGHTd2), 0f);  // Decke
+        polygonShape.setAsBox(WIDTHd2 / 2, 1f, new Vec2(WIDTHd2 / 2, HEIGHTd2), 0f);  // Decke
         fd.setShape(polygonShape); // zur FD
         staticBody.createFixture(fd); // diese fixture muss zum Body
 
-        polygonShape.setAsBox(1f, HEIGHTd2/2, new Vec2(0f, HEIGHTd2/2), 0f);  // Linke Wand
+        polygonShape.setAsBox(1f, HEIGHTd2 / 2, new Vec2(0f, HEIGHTd2 / 2), 0f);  // Linke Wand
         fd.setShape(polygonShape); // zur FD
         staticBody.createFixture(fd); // diese fixture muss zum Body
 
 
-        polygonShape.setAsBox(1f, HEIGHTd2 / 2, new Vec2(WIDTHd2  , HEIGHTd2 / 2), 0f);  // rechte Wand
+        polygonShape.setAsBox(1f, HEIGHTd2 / 2, new Vec2(WIDTHd2, HEIGHTd2 / 2), 0f);  // rechte Wand
         fd.setShape(polygonShape); // zur FD
         staticBody.createFixture(fd); // diese fixture muss zum Body
 
     }
 
-
-    //This method creates a walls.
-    public static void addWall(float posX, float posY, float width, float height) {
-        PolygonShape ps = new PolygonShape();
-        ps.setAsBox(width, height);
-
-        FixtureDef fd = new FixtureDef();
-        fd.shape = ps;
-        fd.density = 1.0f;
-        fd.friction = 0.8f;
-
-        BodyDef bd = new BodyDef();
-        bd.position.set(posX, posY);
-
-        Utils.world.createBody(bd).createFixture(fd);
-    }
-
-    //This gives a look and feel to balls
-    public static LinearGradient getBallGradient(Color color) {
+    //This gives a gradient
+    public static LinearGradient getGradient(Color color) {
 //        if (color.equals(Color.RED))
 //            return LIMB_GRADIENT;
 //        else
-            return new LinearGradient(0.0, 0.0, 1.0, 0.0, true, CycleMethod.NO_CYCLE, new Stop(0, Color.WHITE), new Stop(1, color));
+        // it might be more efficient to setup constant objects for those!
+        return new LinearGradient(0.0, 0.0, 1.0, 0.0, true, CycleMethod.NO_CYCLE, new Stop(0, Color.WHITE), new Stop(1, color));
     }
 
     //Convert a JBox2D x coordinate to a JavaFX pixel x coordinate

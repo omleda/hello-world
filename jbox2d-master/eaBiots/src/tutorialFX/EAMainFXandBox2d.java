@@ -79,14 +79,14 @@ public class EAMainFXandBox2d extends Application {
         final Timeline timeline = new Timeline();
         timeline.setCycleCount(Timeline.INDEFINITE);
 
-        Duration duration = Duration.seconds(1.0 / 60.0); // Set duration for frame.
+        Duration duration = Duration.seconds(1.0 / 40.0); // Set duration for frame.
 
         //Create an ActionEvent, on trigger it executes a world time step and moves the balls to new position
         EventHandler<ActionEvent> ae = new EventHandler<ActionEvent>() {
 
             public void handle(ActionEvent t) {
                 //Create time step. Set Iteration count 8 for velocity and 3 for positions
-                Utils.world.step(1.0f / 60.f, 8, 3);
+                Utils.world.step(1.0f / 40.f, 8, 3);
 
                 //Move balls to the new position computed by JBox2D
                 final ArrayList<Limb> died = new ArrayList<Limb>();
@@ -128,8 +128,7 @@ public class EAMainFXandBox2d extends Application {
                     // draw position it
                     limb.node.setLayoutX(Utils.toPixelPosX(body.getPosition().x - limb.w / 2f));
                     limb.node.setLayoutY(Utils.toPixelPosY(body.getPosition().y + limb.h / 2f));
-                    limb.node.setRotate(Math.toDegrees(body.getAngle()));
-
+                    limb.node.setRotate(-Math.toDegrees(body.getAngle()));
                     ((Rectangle) limb.node).setFill(limb.getFill());
 
                     limb.updateEnergy(died, mammies);
@@ -137,7 +136,7 @@ public class EAMainFXandBox2d extends Application {
 
                 for (Limb dead : died) {
                     assert dead.isDead() : dead + " is not dead!? ";
-                    if (dead.isDeadSince(120)) { // let them float around for 2s
+                    if (dead.deadSince() > 120) { // let zombies float around for 2s
                         Utils.world.destroyBody(dead.bodyd2);
                         biot.remove(dead);
                         root.getChildren().remove(dead.node);

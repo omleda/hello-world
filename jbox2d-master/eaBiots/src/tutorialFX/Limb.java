@@ -9,7 +9,7 @@ import org.jbox2d.dynamics.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
+import java.util.Set;
 
 /**
  * @author dilip
@@ -19,30 +19,23 @@ public class Limb {
 
     private static long s_IDMAX = 0;
 
-    private static final float EAT_EFFICIENCY = 0.07f;
-    private static final float SUNRADIATION = 21f / 25f;
-    private static final long LIVINGCost = 1;
-    private static final long MAXAGE = 8500;
-    private static final int MinBIRTHENERGY = 6000;
-
     private final LimbTyp limbTyp;
     private final long id;
     //JavaFX UI for a limb
     public Node node;
+    //limbs width and height in JBox2D world
+    public float w;
     // box2d Model
     protected Body bodyd2;
-
-    private Random r = new Random(System.currentTimeMillis());
-    private long liveEnergy = 120;
+    protected float h;
+    private float liveEnergy = 120f;
+    // age is counted down, until death: age <= 0
     private long age = 0;
-    private long deadSince = -1;
+    // the generation counter... because it is interesting
     private long generation;
     //X and Y position of the limb in JBox2D world
     private float posX;
     private float posY;
-    //limbs width and height in JBox2D world
-    public float w;
-    protected float h;
     private HashMap<Limb, Integer> touchingLimbs = new HashMap<Limb, Integer>();
     private float density;
     private float friction;
@@ -71,77 +64,89 @@ public class Limb {
         this.restitution = restitution;
 
         this.id = s_IDMAX++;
+
+        this.age = Math.round(Utils.MAXAGE * ModifyByPercent(0.2f));
     }
 
     public Paint getFill() {
-        Color color = limbTyp.getColor();
-        if (liveEnergy <= 0 || deadSince > 0) color = Color.PURPLE;
+        final Color color;
+        if (liveEnergy <= 0) color = Color.PURPLE;  // starved!
+        else if (age <= 0) color = Color.GRAY;  // dead by age!
+        else color = limbTyp.getColor();
+
         if (touchingLimbs.size() > 0) {
 //            if (generation > 0) {
 //                System.err.println(this + " touching = " + touchingLimbs);
 //            }
             return color;
-        } else return Utils.getBallGradient(color);
+        } else return Utils.getGradient(color);
     }
-
-    private Limb kill() {
-        if (isDead()) return this;
-        deadSince = age;
-        return this;
-    }
-
 
     public void updateEnergy(ArrayList<Limb> died, ArrayList<Limb> born) {
-        age += 1;
+
+        final boolean debug = false && id % 100 == 0;
+        StringBuilder sb = new StringBuilder();
+
 
         if (died.contains(this)) {
             return;
         }
-        if (isDead()) {
-            died.add(this);
-        }
 
-        // sun radiation gives energy to green ones only!
-        switch (limbTyp) {
-            case EATER: // this is an eater!
-                for (Limb other : touchingLimbs.keySet()) {
-                    if (other.limbTyp == LimbTyp.ENERGY) { // only eater touching energy
-                        float limbRation = Math.max(w, h) / Math.max(other.w, other.h);
-                        final long l = Math.max(0, Math.round(EAT_EFFICIENCY * limbRation * other.liveEnergy));
-                        liveEnergy += l;
-                        other.removeEnergy(died, l);
-                    }
-                    removeEnergy(died, LIVINGCost * Math.sqrt(w * h));
-                }
+        age -= 1;
 
-                break;
-            case ENERGY:
-                liveEnergy += SUNRADIATION * w * h;
-        }
-
-        if (age > MAXAGE) {
-            // purple limbs are re-added
-            boolean alreadyDead = isDead();
-            final boolean add = died.add(this.kill());
-            if (add && !alreadyDead)
-                System.err.println("too old: " + this);
+        if (age <= 0) {
+            // dead limbs are re-added
+            final boolean add = died.add(this);
+            if (add && debug)
+                sb.append(": too old!\n ");
             return;
         }
 
-        if (liveEnergy > MinBIRTHENERGY) {
+        // sun radiation gives energy to green ones only!
+        final float sizeOfThisLimb = (float) Math.sqrt(w * h);
+        switch (limbTyp) {
+            case EATER: // this is an eater!
+                final Set<Limb> limbs = touchingLimbs.keySet();
+                if (limbs.size() > 0)
+                    for (Limb other : limbs) {
+                        if (other.limbTyp == LimbTyp.ENERGY) { // only eater touching energy
+                            // collision with other limb gives energy to this limb
+                            float l = Utils.EAT_EFFICIENCY * sizeOfThisLimb;
+                            liveEnergy += l;
+                            // and removes from the other
+                            other.removeEnergy(died, l);
+                            if (debug) sb.append(": took ").append(l).append(" from ").append(other);
+                        }
+                    }
+                else {
+                    // else the living of read is expensive
+                    final float l = Utils.LIVINGCost * sizeOfThisLimb;
+                    removeEnergy(died, l);
+                    if (debug) sb.append(": lost ").append(l);
+                }
+                break;
+            case ENERGY:
+                final float l = Utils.SUNRADIATION * sizeOfThisLimb;
+                liveEnergy += l;
+                if (debug) sb.append(": won ").append(l);
+                break;
+        }
 
+
+        if (liveEnergy > Utils.MinBIRTHENERGY) {
+            if (debug) sb.append(" mom!");
             born.add(this);
             // in any case remove the energy as if the birth took place!
-            liveEnergy = liveEnergy / 2;  // giving birth costs a lot!
-
-
+            liveEnergy = liveEnergy / 2f;  // giving birth costs a lot!
         }
+
+        if (debug) System.err.println(this + sb.toString());
 
     }
 
     public Limb createChild() {
-        final Limb limb = new Limb(r.nextFloat() * Utils.WIDTHd2,
-                r.nextFloat() * Utils.HEIGHTd2,
+        final Limb limb = new Limb(Utils.r.nextFloat() * Utils.WIDTHd2,
+                Utils.r.nextFloat() * Utils.HEIGHTd2,
                 w * ModifyByPercent(0.1f),
                 h * ModifyByPercent(0.1f),
                 limbTyp,
@@ -163,14 +168,23 @@ public class Limb {
         return limb;
     }
 
+    /**
+     * Random between [1-p,1+p]
+     *
+     * @param percent 0..1.0f
+     * @return factor
+     */
     private float ModifyByPercent(float percent) {
-        return 1f + (r.nextFloat() - 0.5f) * percent;
+        return 1f + (Utils.r.nextFloat() - 0.5f) * percent;
     }
 
-    private void removeEnergy(ArrayList<Limb> died, double livingCost) {
-        liveEnergy -= Math.round(livingCost);
+    private void removeEnergy(ArrayList<Limb> died, final float energy) {
+        liveEnergy -= energy;
         if (liveEnergy <= 0) {
-            died.add(this.kill());
+            if (age > 0) {
+                age = 0;
+            }
+            died.add(this);
         }
     }
 
@@ -275,11 +289,12 @@ public class Limb {
     }
 
     public boolean isDead() {
-        return deadSince > 0;
+        return age <= 0 || liveEnergy <= 0;
     }
 
-    public boolean isDeadSince(int i) {
-        return age - deadSince > i;
+    public long deadSince() {
+        if (age < 0) return -age;
+        else return 0;
     }
 
 
