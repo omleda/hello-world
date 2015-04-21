@@ -10,6 +10,7 @@ import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
@@ -17,13 +18,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import org.jbox2d.collision.AABB;
-import org.jbox2d.collision.shapes.Shape;
-import org.jbox2d.common.Transform;
-import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyType;
-import org.jbox2d.dynamics.Fixture;
 
 import java.util.ArrayList;
 
@@ -42,6 +38,7 @@ public class EAMainFXandBox2d extends Application {
     @Override
     public void start(Stage primaryStage) {
 
+//        Titel bauen
         primaryStage.setTitle("Biots World!");
         primaryStage.setFullScreen(false);
         primaryStage.setResizable(false);
@@ -60,13 +57,17 @@ public class EAMainFXandBox2d extends Application {
          * Generate Biot and position them on random locations.
          * Random locations between 5 to 95 on x axis and between 100 to 500 on y axis
          */
-        for (int i = 0; i < Utils.NO_OF_BALLS; i++) {
+        for (int i = 0; i < Utils.NO_OF_INITIAL_LIMBS; i++) {
             final Limb e = new Limb(Utils.WIDTHd2 / 2 + (Utils.LIMB_SIZE + 1) * i,  // Xpos
                     Utils.HEIGHTd2 / 2 + (Utils.LIMB_SIZE + 1) * i, // YPos
-                    (i % 2 == 0 ? Limb.LimbTyp.EATER : Limb.LimbTyp.ENERGY),
-                    0, // gneration
                     Utils.LIMB_SIZE, // width
-                    Utils.LIMB_SIZE // heigh
+                    Utils.LIMB_SIZE, // height
+                    (i % 2 == 0 ? Limb.LimbTyp.EATER : Limb.LimbTyp.ENERGY),
+                    0, // generation
+                    // values of initial generation
+                    0.9f,// density
+                    0.3f, // friction
+                    0.8f// restitution
             );
 
             goLive(root, biot, e);
@@ -82,7 +83,6 @@ public class EAMainFXandBox2d extends Application {
 
         //Create an ActionEvent, on trigger it executes a world time step and moves the balls to new position
         EventHandler<ActionEvent> ae = new EventHandler<ActionEvent>() {
-            public static final int MAX_BIOTS = 100;
 
             public void handle(ActionEvent t) {
                 //Create time step. Set Iteration count 8 for velocity and 3 for positions
@@ -90,7 +90,7 @@ public class EAMainFXandBox2d extends Application {
 
                 //Move balls to the new position computed by JBox2D
                 final ArrayList<Limb> died = new ArrayList<Limb>();
-                final ArrayList<Limb> born = new ArrayList<Limb>();
+                final ArrayList<Limb> mammies = new ArrayList<Limb>();
 
                 for (Limb limb : biot) {
 //                }
@@ -126,32 +126,30 @@ public class EAMainFXandBox2d extends Application {
 //                    limb.node.setLayoutY(Utils.toPixelPosY(body.getPosition().y + extents.y));
 
                     // draw position it
-                    limb.node.setLayoutX(Utils.toPixelPosX(body.getPosition().x - limb.w/2f));
+                    limb.node.setLayoutX(Utils.toPixelPosX(body.getPosition().x - limb.w / 2f));
                     limb.node.setLayoutY(Utils.toPixelPosY(body.getPosition().y + limb.h / 2f));
                     limb.node.setRotate(Math.toDegrees(body.getAngle()));
 
                     ((Rectangle) limb.node).setFill(limb.getFill());
 
-                    limb.updateEnergy(died, born);
-
+                    limb.updateEnergy(died, mammies);
                 }
 
                 for (Limb dead : died) {
                     assert dead.isDead() : dead + " is not dead!? ";
-                    if (dead.isDeadSince(120) ) { // let them float around for 2s
+                    if (dead.isDeadSince(120)) { // let them float around for 2s
                         Utils.world.destroyBody(dead.bodyd2);
                         biot.remove(dead);
                         root.getChildren().remove(dead.node);
 //                    } else {
-//                        System.err.println("zomby = " + dead);
+//                        System.err.println("zombie = " + dead);
                     }
 
                 }
-
-                if (biot.size() < MAX_BIOTS) {
-                    for (Limb limb : born) {
-                        limb.createBodyAndNode();
-                        goLive(root, biot, limb);
+                for (Limb mom : mammies) {
+                    if (biot.size() < Utils.MAX_BIOTS) {
+                        final Limb child = mom.createChild();
+                        goLive(root, biot, child);
                     }
                 }
 
@@ -172,11 +170,9 @@ public class EAMainFXandBox2d extends Application {
         btn.setLayoutX((Utils.WIDTH_px / 2));
         btn.setLayoutY((Utils.HEIGHT_px - 30));
         btn.setText("Start");
-        btn.setOnAction(new EventHandler<ActionEvent>() {
-            public void handle(ActionEvent event) {
-                timeline.playFromStart();
-                btn.setVisible(false);
-            }
+        btn.setOnAction(event -> {
+            timeline.playFromStart();
+            btn.setVisible(false);
         });
 
         //Add button to the root group
@@ -188,17 +184,15 @@ public class EAMainFXandBox2d extends Application {
 //        }
 
         //Draw hurdles on mouse event.
-        EventHandler<MouseEvent> addHurdle = new EventHandler<MouseEvent>() {
-            public void handle(MouseEvent me) {
-                //Get mouse's x and y coordinates on the scene
-                double dragX = me.getSceneX();
-                double dragY = me.getSceneY();
+        EventHandler<MouseEvent> addHurdle = me -> {
+            //Get mouse's x and y coordinates on the scene
+            double dragX = me.getSceneX();
+            double dragY = me.getSceneY();
 
-                //Draw ball on this location. Set balls body type to static.
-                Ball hurdle = new Ball(Utils.toPosX(dragX), Utils.toPosY(dragY), 2, BodyType.STATIC, Color.BLUE);
-                //Add ball to the root group
-                root.getChildren().add(hurdle.node);
-            }
+            //Draw ball on this location. Set balls body type to static.
+            Ball hurdle = new Ball(Utils.toPosX(dragX), Utils.toPosY(dragY), 2, BodyType.STATIC, Color.BLUE);
+            //Add ball to the root group
+            root.getChildren().add(hurdle.node);
         };
 
         scene.setOnMouseDragged(addHurdle);
@@ -207,9 +201,13 @@ public class EAMainFXandBox2d extends Application {
         primaryStage.show();
     }
 
-    private void goLive(Group root, ArrayList<Limb> biot, Limb e) {
+    private void goLive(Group root, ArrayList<Limb> biot, final Limb e) {
         e.createBodyAndNode();
         biot.add(e);
-        root.getChildren().add(e.node);
+        final Node node = e.node;
+        root.getChildren().add(node);
+        node.setOnMousePressed(event -> {
+            System.err.println("selected Limb: " + e);
+        });
     }
 }

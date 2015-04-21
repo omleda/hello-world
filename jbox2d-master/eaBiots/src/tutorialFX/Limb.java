@@ -19,16 +19,17 @@ public class Limb {
 
     private static long s_IDMAX = 0;
 
-    private static final float EAT_EFFICIENCY = 0.6f;
-    private static final long SUNRADIATION = 3;
+    private static final float EAT_EFFICIENCY = 0.07f;
+    private static final float SUNRADIATION = 21f / 25f;
     private static final long LIVINGCost = 1;
     private static final long MAXAGE = 8500;
     private static final int MinBIRTHENERGY = 6000;
 
     private final LimbTyp limbTyp;
     private final long id;
-    //JavaFX UI for limb
+    //JavaFX UI for a limb
     public Node node;
+    // box2d Model
     protected Body bodyd2;
 
     private Random r = new Random(System.currentTimeMillis());
@@ -48,33 +49,26 @@ public class Limb {
     private float restitution;
 
     /**
-     * Create a red ball
-     *
-     * @param w
-     * @param h
-     * @param posX
-     * @param posY
-     * @param typ
-     */
-    public Limb(float posX, float posY, final LimbTyp typ, long generation, final float w, final float h) {
-        this(posX, posY, w, h, typ, generation);
-    }
-
-    /**
-     * Create arbitrary ball.
+     * Create arbitrary limb.
      *
      * @param posX
      * @param posY
      * @param color
+     * @param w
+     * @param h
      */
-    public Limb(float posX, float posY, float w, float h, LimbTyp color, long generation) {
+    public Limb(float posX, float posY, float w, float h, LimbTyp color, long generation,
+                float density, float friction, float restitution) {
         this.posX = posX;
         this.posY = posY;
         this.w = w;
         this.h = h;
-//        this.gradient = Utils.getBallGradient(color.getColor());
         limbTyp = color;
         this.generation = generation;
+
+        this.density = density;
+        this.friction = friction;
+        this.restitution = restitution;
 
         this.id = s_IDMAX++;
     }
@@ -83,9 +77,9 @@ public class Limb {
         Color color = limbTyp.getColor();
         if (liveEnergy <= 0 || deadSince > 0) color = Color.PURPLE;
         if (touchingLimbs.size() > 0) {
-            if (generation > 0) {
-                System.err.println(this + " touching = " + touchingLimbs);
-            }
+//            if (generation > 0) {
+//                System.err.println(this + " touching = " + touchingLimbs);
+//            }
             return color;
         } else return Utils.getBallGradient(color);
     }
@@ -112,46 +106,69 @@ public class Limb {
             case EATER: // this is an eater!
                 for (Limb other : touchingLimbs.keySet()) {
                     if (other.limbTyp == LimbTyp.ENERGY) { // only eater touching energy
-                        float limbRation = w * h / other.w / other.h;
+                        float limbRation = Math.max(w, h) / Math.max(other.w, other.h);
                         final long l = Math.max(0, Math.round(EAT_EFFICIENCY * limbRation * other.liveEnergy));
                         liveEnergy += l;
                         other.removeEnergy(died, l);
                     }
-                    removeEnergy(died, LIVINGCost);
+                    removeEnergy(died, LIVINGCost * Math.sqrt(w * h));
                 }
 
                 break;
             case ENERGY:
-                liveEnergy += SUNRADIATION;
+                liveEnergy += SUNRADIATION * w * h;
         }
 
-
-//        if (age % 100 == 0) {
-//            System.err.println(this);
-//        }
-
         if (age > MAXAGE) {
-            died.add(this.kill());
+            // purple limbs are re-added
+            boolean alreadyDead = isDead();
+            final boolean add = died.add(this.kill());
+            if (add && !alreadyDead)
+                System.err.println("too old: " + this);
+            return;
         }
 
         if (liveEnergy > MinBIRTHENERGY) {
-            final Limb limb = new Limb(r.nextFloat() * Utils.WIDTHd2,
-                    r.nextFloat() * Utils.HEIGHTd2,
-                    limbTyp,
-                    generation + 1,
-                    w + r.nextFloat() - 0.5f,
-                    h + r.nextFloat() - 0.5f
-            );
-            System.err.println("new born limb = " + limb);
+
+            born.add(this);
+            // in any case remove the energy as if the birth took place!
             liveEnergy = liveEnergy / 2;  // giving birth costs a lot!
-            System.err.println("       Mother = " + this);
-            born.add(limb);
+
+
         }
 
     }
 
-    private void removeEnergy(ArrayList<Limb> died, long livingCost) {
-        liveEnergy -= livingCost;
+    public Limb createChild() {
+        final Limb limb = new Limb(r.nextFloat() * Utils.WIDTHd2,
+                r.nextFloat() * Utils.HEIGHTd2,
+                w * ModifyByPercent(0.1f),
+                h * ModifyByPercent(0.1f),
+                limbTyp,
+                generation + 1,
+                density * ModifyByPercent(0.1f),
+                friction * ModifyByPercent(0.1f),
+                restitution * ModifyByPercent(0.1f)
+        );
+
+        System.err.println("\n    Mother = " + this);
+        System.err.println("child limb = " + limb);
+        System.err.println("  w: " + w + "->" + limb.w);
+        System.err.println("  h: " + h + "->" + limb.h);
+        System.err.println("  A: " + h * w + "->" + limb.h * limb.w);
+        // seems not relevant!
+//            System.err.println("  f: " + friction + "->" + limb.friction);
+//            System.err.println("  d: " + density + "->" + limb.density);
+//            System.err.println("  r: " + restitution + "->" + limb.restitution);
+        return limb;
+    }
+
+    private float ModifyByPercent(float percent) {
+        return 1f + (r.nextFloat() - 0.5f) * percent;
+    }
+
+    private void removeEnergy(ArrayList<Limb> died, double livingCost) {
+        liveEnergy -= Math.round(livingCost);
         if (liveEnergy <= 0) {
             died.add(this.kill());
         }
@@ -160,7 +177,7 @@ public class Limb {
 
     @Override
     public String toString() {
-        return ("Limb#" + id + ": gen=" + generation + " age=" + age + " deadSince=" + deadSince + " energy=" + liveEnergy);
+        return limbTyp + "#" + id + ": gen=" + generation + " age=" + age + " energy=" + liveEnergy;
     }
 
     protected void createBodyAndNode() {
@@ -173,7 +190,7 @@ public class Limb {
      */
     private Node createNode() {
 
-        System.err.println("create Node for " + this);
+//        System.err.println("create Node for " + this);
 
         //Create an UI for ball - JavaFX code
         Rectangle fxBox = new Rectangle();
@@ -193,14 +210,14 @@ public class Limb {
          * Set ball position on JavaFX scene. We need to convert JBox2D coordinates
          * to JavaFX coordinates which are in pixels.
          */
-        fxBox.setLayoutX(Utils.toPixelPosX(bodyd2.getPosition().x /*- w / 2f*/));
+        fxBox.setLayoutX(Utils.toPixelPosX(bodyd2.getPosition().x - w / 2f));
         fxBox.setLayoutY(Utils.toPixelPosY(bodyd2.getPosition().y + h / 2f));
 
         return fxBox;
     }
 
     private void setupBody() {
-        System.err.println("setup body for " + this);
+//        System.err.println("setup body for " + this);
         //Create an JBox2D body definition for ball.
         BodyDef bd = new BodyDef();
         bd.type = BodyType.DYNAMIC;
@@ -214,13 +231,8 @@ public class Limb {
         // Create a fixture for ball
         FixtureDef fd = new FixtureDef();
         fd.shape = cs;
-
-        //todo:  three parameters to evolve
-        density = 0.9f;
         fd.density = density;
-        friction = 0.3f;
         fd.friction = friction;
-        restitution = 0.8f;
         fd.restitution = restitution;
 
         bodyd2 = Utils.world.createBody(bd);
@@ -272,17 +284,24 @@ public class Limb {
 
 
     enum LimbTyp {
-        EATER(Color.RED),
-        ENERGY(Color.GREEN);
+        EATER(Color.RED, "R"),
+        ENERGY(Color.GREEN, "G");
 
+        private final String s;
         private Color color;
 
-        LimbTyp(Color color) {
+        LimbTyp(Color color, String s) {
             this.color = color;
+            this.s = s;
         }
 
         public Color getColor() {
             return color;
+        }
+
+        @Override
+        public String toString() {
+            return s;
         }
     }
 

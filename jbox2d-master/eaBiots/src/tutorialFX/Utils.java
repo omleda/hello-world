@@ -9,7 +9,7 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
 
 /**
- * @author dilip
+ * @author dilip then ea
  */
 public class Utils {
     //Create a JBox2D world.
@@ -20,16 +20,16 @@ public class Utils {
     public static final int WIDTH_px = 500;
     public static final int HEIGHT_px = 500;
 
-    public static final float WIDTHd2 = 200f;
-    public static final float HEIGHTd2 = 200f;
+    public static final float WIDTHd2 = 300f;
+    public static final float HEIGHTd2 = 300f;
 
 
     //Ball radius in pixel
     public static final float LIMB_SIZE = 5f;
 
-    //Total number of balls
-    public final static int NO_OF_BALLS = 10;
-
+    //Total number of limbs
+    public final static int NO_OF_INITIAL_LIMBS = 10;
+    public static final int MAX_BIOTS = 250;
 
 
     //This method adds a ground to the screen.
@@ -58,7 +58,7 @@ public class Utils {
 
         FixtureDef fd = new FixtureDef();
         //  parameter die bei allen Fixtures gelten
-        fd.setRestitution(1.2f);
+        fd.setRestitution(1.7f);
 
 
         // dann die shapes
