@@ -37,7 +37,9 @@ public class Utils {
     static final int MinBIRTHENERGY = 6000;
     static final long MAXAGE = 8500;
 
-    static final float EAT_EFFICIENCY = 5.1f;
+    static final float EAT_EFFICIENCY = 6.3f;
+
+    static final float RED_HURTS = 3.1f;
 
     static final float SUNRADIATION = 29f / 25f;
 

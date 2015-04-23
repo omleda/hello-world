@@ -18,8 +18,13 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.jbox2d.collision.AABB;
+import org.jbox2d.collision.shapes.Shape;
+import org.jbox2d.common.Transform;
+import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyType;
+import org.jbox2d.dynamics.Fixture;
 
 import java.util.ArrayList;
 
@@ -27,6 +32,9 @@ import java.util.ArrayList;
  * @author dilip
  */
 public class EAMainFXandBox2d extends Application {
+
+    private Limb selected;
+    private Rectangle selectionFrame;
 
     /**
      * @param args the command line arguments
@@ -99,31 +107,43 @@ public class EAMainFXandBox2d extends Application {
                     Body body = (Body) limb.node.getUserData();
 
 
-                    // die richtige position des FXRechtecks muss ausgerechnet werden: ??!! wie macht man das wirklich??
-//                    final Transform transform = new Transform();
-//                    AABB aabb = new AABB(new Vec2(Float.MAX_VALUE, Float.MAX_EXPONENT), new Vec2(Float.MIN_VALUE, Float.MIN_VALUE));
+                    if (limb == selected) {
+
+                        if (limb.isDead()) {
+                            // clean up the selection frame!
+                            selected = null;
+                            root.getChildren().remove(selectionFrame);
+                        } else {
+                            // die richtige position des FXRechtecks muss ausgerechnet werden: ??!! wie macht man das wirklich??
+                            final Transform transform = new Transform();
+                            AABB aabb = new AABB(new Vec2(Float.MAX_VALUE, Float.MAX_EXPONENT), new Vec2(Float.MIN_VALUE, Float.MIN_VALUE));
 //
-//                    Fixture fixture = body.getFixtureList();
-//                    while (fixture != null) {
-//                        final Shape shape = fixture.getShape();
-//                        final int childCount = shape.getChildCount();
-//
-//                        for (int child = 0; child < childCount; child++) {
-//                            AABB shapeAABB = new AABB();
-//                            shape.computeAABB(shapeAABB, transform, child);
-//                            final float radius = shape.getRadius();
-//                            aabb.upperBound.x -= radius;
-//                            aabb.upperBound.y -= radius;
-//                            aabb.lowerBound.x += radius;
-//                            aabb.lowerBound.y += radius;
-//                            aabb.combine(shapeAABB);
-//                        }
-//                        fixture = fixture.getNext();
-//                    }
-//                    final Vec2 extents = aabb.getExtents();
-                    ////   jetzt haben wir die bouding box, aber die ist ja zu gross!
-//                    limb.node.setLayoutX(Utils.toPixelPosX(body.getPosition().x - extents.x));
-//                    limb.node.setLayoutY(Utils.toPixelPosY(body.getPosition().y + extents.y));
+                            Fixture fixture = body.getFixtureList();
+                            while (fixture != null) {
+                                final Shape shape = fixture.getShape();
+                                final int childCount = shape.getChildCount();
+
+                                for (int child = 0; child < childCount; child++) {
+                                    AABB shapeAABB = new AABB();
+                                    shape.computeAABB(shapeAABB, transform, child);
+                                    final float radius = shape.getRadius();
+                                    aabb.upperBound.x -= radius;
+                                    aabb.upperBound.y -= radius;
+                                    aabb.lowerBound.x += radius;
+                                    aabb.lowerBound.y += radius;
+                                    aabb.combine(shapeAABB);
+                                }
+                                fixture = fixture.getNext();
+                            }
+                            Vec2 extents = aabb.getExtents();
+                            extents = extents.mul(1.5f);
+                            ////   jetzt haben wir die bouding box, aber die ist ja zu gross!
+                            selectionFrame.setLayoutX(Utils.toPixelPosX(body.getPosition().x - extents.x));
+                            selectionFrame.setLayoutY(Utils.toPixelPosY(body.getPosition().y + extents.y));
+                            selectionFrame.setHeight(Utils.toPixelHeight(2 * extents.y));
+                            selectionFrame.setWidth(Utils.toPixelWidth(2 * extents.x));
+                        }
+                    }
 
                     // draw position it
                     limb.node.setLayoutX(Utils.toPixelPosX(body.getPosition().x - limb.w / 2f));
@@ -207,6 +227,10 @@ public class EAMainFXandBox2d extends Application {
         root.getChildren().add(node);
         node.setOnMousePressed(event -> {
             System.err.println("selected Limb: " + e);
+            selected = e;
+            selectionFrame = new Rectangle(0,0,Color.TRANSPARENT);
+            selectionFrame.setStroke(Color.GHOSTWHITE);
+            root.getChildren().add(selectionFrame);
         });
     }
 }

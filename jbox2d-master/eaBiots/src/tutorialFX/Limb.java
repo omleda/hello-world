@@ -103,7 +103,6 @@ public class Limb {
         }
 
         // sun radiation gives energy to green ones only!
-        final float sizeOfThisLimb = (float) Math.sqrt(w * h);
         switch (limbTyp) {
             case EATER: // this is an eater!
                 final Set<Limb> limbs = touchingLimbs.keySet();
@@ -111,22 +110,29 @@ public class Limb {
                     for (Limb other : limbs) {
                         if (other.limbTyp == LimbTyp.ENERGY) { // only eater touching energy
                             // collision with other limb gives energy to this limb
-                            float l = Utils.EAT_EFFICIENCY * sizeOfThisLimb;
+                            float l = Utils.EAT_EFFICIENCY * Math.max(w, h);
                             liveEnergy += l;
                             // and removes from the other
                             other.removeEnergy(died, l);
                             if (debug) sb.append(": took ").append(l).append(" from ").append(other);
+                        } else if (other.limbTyp == LimbTyp.EATER) {
+                            // collision with other limb gives energy to this limb
+                            float l = Utils.RED_HURTS * (float) Math.sqrt(w*w+ h* h);
+                            // hitting a red one hurts myself too
+                            removeEnergy(died, l);
+                            if (debug) sb.append(": lost ").append(l).append(" by attack of ").append(other);
+
                         }
                     }
                 else {
                     // else the living of read is expensive
-                    final float l = Utils.LIVINGCost * sizeOfThisLimb;
+                    final float l = Utils.LIVINGCost * (float) Math.sqrt(w*w+ h* h);
                     removeEnergy(died, l);
                     if (debug) sb.append(": lost ").append(l);
                 }
                 break;
             case ENERGY:
-                final float l = Utils.SUNRADIATION * sizeOfThisLimb;
+                final float l = Utils.SUNRADIATION * (float) Math.sqrt(w+  h);
                 liveEnergy += l;
                 if (debug) sb.append(": won ").append(l);
                 break;
