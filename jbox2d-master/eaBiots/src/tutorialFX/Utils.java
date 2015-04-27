@@ -1,13 +1,11 @@
 package tutorialFX;
 
-import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
+import javafx.scene.paint.*;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
 
+import java.util.HashMap;
 import java.util.Random;
 
 /**
@@ -22,14 +20,14 @@ public class Utils {
     public static final int WIDTH_px = 500;
     public static final int HEIGHT_px = 500;
 
-    public static final float WIDTHd2 = 330f;
-    public static final float HEIGHTd2 = 330f;
+    public static final float WIDTHd2 = 100f;
+    public static final float HEIGHTd2 = 100f;
 
     //Initial size in pixel
     public static final float LIMB_SIZE = 5f;
 
     //Total number of limbs
-    public final static int NO_OF_INITIAL_LIMBS = 10;
+    public final static int NO_OF_INITIAL_BIOTS = 1;
     public static final int MAX_BIOTS = 250;
 
 
@@ -43,10 +41,12 @@ public class Utils {
 
     static final float SUNRADIATION = 29f / 25f;
 
-    static final float LIVINGCost = 0.04f;
+    static final float LIVINGCost = 0f; // 0.04f;
 
     // the random generator
     static Random r = new Random(System.currentTimeMillis());
+
+    static private final HashMap<Color, Paint> cachedPaints = new HashMap<>();
 
 
     public static void fourWalls() {
@@ -83,13 +83,14 @@ public class Utils {
 
     }
 
-    //This gives a gradient
-    public static LinearGradient getGradient(Color color) {
-//        if (color.equals(Color.RED))
-//            return LIMB_GRADIENT;
-//        else
-        // it might be more efficient to setup constant objects for those!
-        return new LinearGradient(0.0, 0.0, 1.0, 0.0, true, CycleMethod.NO_CYCLE, new Stop(0, Color.WHITE), new Stop(1, color));
+    public static Paint getGradient(Color color) {
+        Paint paint = cachedPaints.get(color);
+        if (paint == null) {
+            //This gives a gradient
+            paint = new LinearGradient(0.0, 0.0, 1.0, 0.0, true, CycleMethod.NO_CYCLE, new Stop(0, Color.WHITE), new Stop(1, color));
+            cachedPaints.put(color, paint);
+        }
+        return paint;
     }
 
     //Convert a JBox2D x coordinate to a JavaFX pixel x coordinate

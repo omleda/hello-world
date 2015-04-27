@@ -93,15 +93,16 @@ public class RevoluteTest extends TestbedTest {
       BodyDef bd = new BodyDef();
       bd.type = BodyType.DYNAMIC;
 
-      RevoluteJointDef rjd = new RevoluteJointDef();
 
       bd.position.set(-10f, 20.0f);
       Body body = getWorld().createBody(bd);
       body.createFixture(shape, 5.0f);
 
-      float w = 100.0f;
-      body.setAngularVelocity(w);
-      body.setLinearVelocity(new Vec2(-8.0f * w, 0.0f));
+//      float w = 100.0f;
+//      body.setAngularVelocity(w);
+//      body.setLinearVelocity(new Vec2(-8.0f * w, 0.0f));
+
+      RevoluteJointDef rjd = new RevoluteJointDef();
 
       rjd.initialize(ground, body, new Vec2(-10.0f, 12.0f));
       rjd.motorSpeed = -1.0f * MathUtils.PI;
@@ -145,7 +146,7 @@ public class RevoluteTest extends TestbedTest {
       rjd.initialize(ground, polygon_body, new Vec2(20.0f, 10.0f));
       rjd.lowerAngle = -0.25f * MathUtils.PI;
       rjd.upperAngle = 0.0f * MathUtils.PI;
-      rjd.enableLimit = true;
+      rjd.enableLimit = false;
       m_world.createJoint(rjd);
     }
 

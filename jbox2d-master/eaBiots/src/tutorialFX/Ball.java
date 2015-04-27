@@ -3,6 +3,7 @@ package tutorialFX;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import org.jbox2d.collision.shapes.CircleShape;
 import org.jbox2d.dynamics.Body;
@@ -34,7 +35,7 @@ public class Ball {
     private BodyType bodyType;
 
     //Gradient effects for balls
-    private LinearGradient gradient;
+    private Paint gradient;
 
     /**
      * Create a red ball

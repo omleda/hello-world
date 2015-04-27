@@ -81,7 +81,7 @@ public class JFXwithJBox2d extends Application {
         final Scene scene = new Scene(root, Utils.WIDTH_px, Utils.HEIGHT_px, Color.BLACK);
 
         //Ball array for hold the  balls
-        final Ball[] ball = new Ball[Utils.NO_OF_INITIAL_LIMBS];
+        final Ball[] ball = new Ball[Utils.NO_OF_INITIAL_BIOTS];
 
         Random r = new Random(System.currentTimeMillis());
 
@@ -89,7 +89,7 @@ public class JFXwithJBox2d extends Application {
          * Generate balls and position them on random locations.
          * Random locations between 5 to 95 on x axis and between 100 to 500 on y axis
          */
-        for (int i = 0; i < Utils.NO_OF_INITIAL_LIMBS; i++) {
+        for (int i = 0; i < Utils.NO_OF_INITIAL_BIOTS; i++) {
             ball[i] = new Ball(r.nextInt(90) + 5, r.nextInt(400) + 100);
         }
 
@@ -113,7 +113,7 @@ public class JFXwithJBox2d extends Application {
                 Utils.world.step(1.0f / 60.f, 8, 3);
 
                 //Move balls to the new position computed by JBox2D
-                for (int i = 0; i < Utils.NO_OF_INITIAL_LIMBS; i++) {
+                for (int i = 0; i < Utils.NO_OF_INITIAL_BIOTS; i++) {
                     Body body = (Body) ball[i].node.getUserData();
                     ball[i].node.setLayoutX(Utils.toPixelPosX(body.getPosition().x));
                     ball[i].node.setLayoutY(Utils.toPixelPosY(body.getPosition().y));
@@ -146,7 +146,7 @@ public class JFXwithJBox2d extends Application {
         root.getChildren().add(btn);
 
         //Add all balls to the root group
-        for (int i = 0; i < Utils.NO_OF_INITIAL_LIMBS; i++) {
+        for (int i = 0; i < Utils.NO_OF_INITIAL_BIOTS; i++) {
             root.getChildren().add(ball[i].node);
         }
 

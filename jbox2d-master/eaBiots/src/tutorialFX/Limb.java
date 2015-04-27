@@ -27,6 +27,7 @@ public class Limb {
     public float w;
     // box2d Model
     protected Body bodyd2;
+
     protected float h;
     private float liveEnergy = 120f;
     // age is counted down, until death: age <= 0
@@ -40,6 +41,7 @@ public class Limb {
     private float density;
     private float friction;
     private float restitution;
+
 
     /**
      * Create arbitrary limb.
@@ -79,7 +81,10 @@ public class Limb {
 //                System.err.println(this + " touching = " + touchingLimbs);
 //            }
             return color;
-        } else return Utils.getGradient(color);
+        } else {
+            Paint paint = Utils.getGradient(color);
+            return paint;
+        }
     }
 
     public void updateEnergy(ArrayList<Limb> died, ArrayList<Limb> born) {
@@ -117,7 +122,7 @@ public class Limb {
                             if (debug) sb.append(": took ").append(l).append(" from ").append(other);
                         } else if (other.limbTyp == LimbTyp.EATER) {
                             // collision with other limb gives energy to this limb
-                            float l = Utils.RED_HURTS * (float) Math.sqrt(w*w+ h* h);
+                            float l = Utils.RED_HURTS * (float) Math.sqrt(w * w + h * h);
                             // hitting a red one hurts myself too
                             removeEnergy(died, l);
                             if (debug) sb.append(": lost ").append(l).append(" by attack of ").append(other);
@@ -126,13 +131,13 @@ public class Limb {
                     }
                 else {
                     // else the living of read is expensive
-                    final float l = Utils.LIVINGCost * (float) Math.sqrt(w*w+ h* h);
+                    final float l = Utils.LIVINGCost * (float) Math.sqrt(w * w + h * h);
                     removeEnergy(died, l);
                     if (debug) sb.append(": lost ").append(l);
                 }
                 break;
             case ENERGY:
-                final float l = Utils.SUNRADIATION * (float) Math.sqrt(w+  h);
+                final float l = Utils.SUNRADIATION * (float) Math.sqrt(w + h);
                 liveEnergy += l;
                 if (debug) sb.append(": won ").append(l);
                 break;
@@ -201,8 +206,10 @@ public class Limb {
     }
 
     protected void createBodyAndNode() {
-        setupBody();
-        node = createNode();
+        if (bodyd2 == null)
+            setupBody(this);
+        if (node == null)
+            node = createNode();
     }
 
     /**
@@ -222,9 +229,8 @@ public class Limb {
 
         fxBox.setCache(true); //Cache this object for better performance
 
-
-        //TODO:  shouldn't we set the limb ??
-        fxBox.setUserData(bodyd2);
+        // we store the reference to this limb
+        fxBox.setUserData(this);
 
         /**
          * Set ball position on JavaFX scene. We need to convert JBox2D coordinates
@@ -236,33 +242,33 @@ public class Limb {
         return fxBox;
     }
 
-    private void setupBody() {
+    static void setupBody(Limb limb) {
+        assert limb.bodyd2 == null : "Don't setup body twice for " + limb;
 //        System.err.println("setup body for " + this);
         //Create an JBox2D body definition for ball.
         BodyDef bd = new BodyDef();
         bd.type = BodyType.DYNAMIC;
-        bd.position.set(posX, posY);
+        bd.position.set(limb.posX, limb.posY);
         bd.setBullet(true);
         bd.allowSleep = true;
 
         PolygonShape cs = new PolygonShape();
-        cs.setAsBox(w / 2f, h / 2f);
+        cs.setAsBox(limb.w / 2f, limb.h / 2f);
 
-        // Create a fixture for ball
+        // Create a fixture for limb
         FixtureDef fd = new FixtureDef();
         fd.shape = cs;
-        fd.density = density;
-        fd.friction = friction;
-        fd.restitution = restitution;
+        fd.density = limb.density;
+        fd.friction = limb.friction;
+        fd.restitution = limb.restitution;
 
-        bodyd2 = Utils.world.createBody(bd);
+        limb.bodyd2 = Utils.world.createBody(bd);
         /**
          * Virtual invisible JBox2D body . Bodies have velocity and position.
          * Forces, torques, and impulses can be applied to these bodies.
          */
-        final Fixture fixture = bodyd2.createFixture(fd);
-        fixture.setUserData(this);
-
+        final Fixture fixture = limb.bodyd2.createFixture(fd);
+        fixture.setUserData(limb);
     }
 
     public void startContact(Limb other) {

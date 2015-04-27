@@ -33,6 +33,7 @@ public class TestList {
   public static void populateModel(TestbedModel model) {
     // particles
     model.addCategory("EA");
+    model.addTest(new EABiot2());
     model.addTest(new EABiot1());
     model.addTest(new EATest());
     model.addTest(new eaVerticalStack());

@@ -92,7 +92,7 @@ public class FreePendulumTest extends TestbedTest {
     RevoluteJointDef jointDef = new RevoluteJointDef();
 
     if (switchBodiesInJoint)
-      jointDef.initialize(pendulum, base, new Vec2(0, 0));
+      jointDef.initialize(pendulum, base, new Vec2(0, 2));
     else
       jointDef.initialize(base, pendulum, new Vec2(0, 0));
 
