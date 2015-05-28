@@ -12,24 +12,36 @@ public class MyContactListener implements ContactListener {
 
     @Override
     public void beginContact(Contact contact) {
-        final Object limba = contact.getFixtureA().getUserData();
-        final Object limbb = contact.getFixtureB().getUserData();
+        final Object objA = contact.getFixtureA().getUserData();
+        final Object objB = contact.getFixtureB().getUserData();
 
-        if (limba instanceof Limb && limbb instanceof Limb) {
-            ((Limb) limba).startContact((Limb) limbb);
-            ((Limb) limbb).startContact((Limb) limba);
+        if (objA instanceof Limb && objB instanceof Limb) {
+            final Limb limbA = (Limb) objA;
+            final Limb limbB = (Limb) objB;
+            if (limbA.biot != limbB.biot) {
+                // limbs of the  same biot to physically collide, but
+                // energy-wise those collisions are ignored.
+                limbA.startContact(limbB);
+                limbB.startContact(limbA);
+            }
         }
         // what else??
     }
 
     @Override
     public void endContact(Contact contact) {
-        final Object limba = contact.getFixtureA().getUserData();
-        final Object limbb = contact.getFixtureB().getUserData();
+        final Object objA = contact.getFixtureA().getUserData();
+        final Object objB = contact.getFixtureB().getUserData();
 
-        if (limba instanceof Limb && limbb instanceof Limb) {
-            ((Limb) limba).endContact((Limb) limbb);
-            ((Limb) limbb).endContact((Limb) limba);
+        if (objA instanceof Limb && objB instanceof Limb) {
+            final Limb limbA = (Limb) objA;
+            final Limb limbB = (Limb) objB;
+            if (limbA.biot != limbB.biot) {
+                // limbs of the  same biot to physically collide, but
+                // energy-wise those collisions are ignored.
+                limbA.endContact(limbB);
+                limbB.endContact(limbA);
+            }
         }
         // what else??
     }

@@ -2,6 +2,8 @@ package tutorialFX;
 
 import javafx.scene.paint.*;
 import org.jbox2d.collision.shapes.PolygonShape;
+import org.jbox2d.common.MathUtils;
+import org.jbox2d.common.Rot;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
 
@@ -12,36 +14,47 @@ import java.util.Random;
  * @author dilip then ea
  */
 public class Utils {
+
+    private static final Vec2 gravity = new Vec2(0, -1.0f);
+
+    private static final float mutationRate = 2f;
+
+
     //Create a JBox2D world.
     // with gravity vector.
-    public static final World world = new World(new Vec2(-10f, -10.0f));
+    public static final World world = new World(gravity);
 
     //Screen width and height  in pixels
     public static final int WIDTH_px = 500;
     public static final int HEIGHT_px = 500;
 
-    public static final float WIDTHd2 = 100f;
-    public static final float HEIGHTd2 = 100f;
+    public static final float WIDTHd2 = 500f;
+    public static final float HEIGHTd2 = 500f;
+
+    // step frequency
+    public static final float DT = 1f / 25f;
+
 
     //Initial size in pixel
     public static final float LIMB_SIZE = 5f;
 
     //Total number of limbs
     public final static int NO_OF_INITIAL_BIOTS = 1;
-    public static final int MAX_BIOTS = 250;
+    public static final int MAX_BIOTS = 150;
 
 
     ///////// interaction constants
-    static final int MinBIRTHENERGY = 6000;
-    static final long MAXAGE = 8500;
+    static final float InitialBIRTHENERGY = 3000f;
 
-    static final float EAT_EFFICIENCY = 6.3f;
+    static final long MAXAGE = 8500;  // 8500*DT / 60 = 5.6 Minutes of life time max
 
-    static final float RED_HURTS = 3.1f;
+    static final float EAT_EFFICIENCY = 4.3f;
 
-    static final float SUNRADIATION = 29f / 25f;
+    static final float RED_HURTS_RED = 0.8f;
 
-    static final float LIVINGCost = 0f; // 0.04f;
+    static final float SUNRADIATION = 80f / 25f;
+
+    static final float LIVINGCostOfRedLimb = 0.01f; // 0.04f;
 
     // the random generator
     static Random r = new Random(System.currentTimeMillis());
@@ -59,7 +72,7 @@ public class Utils {
 
         FixtureDef fd = new FixtureDef();
         //  parameter die bei allen Fixtures gelten
-        fd.setRestitution(1.7f);
+        fd.setRestitution(2.3f);
 
 
         // dann die shapes
@@ -127,4 +140,63 @@ public class Utils {
     public static float toDistance(double radius) {
         return (float) (radius * WIDTHd2 / WIDTH_px);
     }
+
+    /**
+     * Random between [1-p,1+p]  p multiplied by mutationRate
+     *
+     * @param percent 0..1.0f
+     * @return factor
+     */
+    static float RandomInPercentageRange(float percent) {
+        return 1f + (r.nextFloat() - 0.5f) * percent * mutationRate;
+    }
+
+    /**
+     * Random between [min-max]. range stretched around mid by mutationRate
+     *
+     * @param min
+     * @param max
+     * @return random float
+     */
+    static float RandomInRange(float min, float max) {
+        assert min < max;
+        final float v = max - min;
+        return min + v / 2f * (1 - mutationRate) + r.nextFloat() * mutationRate * v;
+    }
+
+
+    /**
+     * Random between [min-max].  no stretch of range by mutationRate.
+     *
+     * @param min
+     * @param max
+     * @return random float
+     */
+    static float RandomInRangeNoMRATE(float min, float max) {
+        assert min < max;
+        return min + r.nextFloat() * (max - min);
+    }
+
+    /**
+     * Vectore of length mutationRate in random direction.
+     * @return
+     */
+    static Vec2 RandomUnitVector() {
+        final Rot rot = new Rot(RandomInRange(0f, 360f * MathUtils.DEG2RAD));
+        Vec2 result = new Vec2();
+        rot.getXAxis(result);
+        result.mulLocal(mutationRate);
+        return result;
+    }
+
+    /**
+     * return true with specified probability (approx) probablity is mulitplied by mutationRate.
+     *
+     * @param probability
+     * @return true with the given probability
+     */
+    static boolean RandomBoolean(float probability) {
+        return r.nextFloat() <= probability * mutationRate;
+    }
+
 }

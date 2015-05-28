@@ -10,7 +10,6 @@ import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
@@ -19,22 +18,17 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.jbox2d.collision.AABB;
-import org.jbox2d.collision.shapes.Shape;
-import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
-import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyType;
-import org.jbox2d.dynamics.Fixture;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * @author dilip
  */
 public class EAMainFXandBox2d extends Application {
 
-    private Limb selected;
+    private Biot selected;
     private Rectangle selectionFrame;
 
     /**
@@ -55,78 +49,68 @@ public class EAMainFXandBox2d extends Application {
         final Group root = new Group(); //Create a group for holding all objects on the screen
         final Scene scene = new Scene(root, Utils.WIDTH_px, Utils.HEIGHT_px, Color.BLACK);
 
-        //Ball array for hold the  balls
-        final ArrayList<Limb> allLimbs = new ArrayList<Limb>();
+        //array for hold the biots
+        final ArrayList<Biot> allBiots = new ArrayList<>();
+
 
         // setup the contact listener for colliding limbs
         Utils.world.setContactListener(new MyContactListener());
 
+        Utils.fourWalls();
+
+
         /**
-         * Generate Biot and position them on random locations.
-         * Random locations between 5 to 95 on x axis and between 100 to 500 on y axis
+         * Generate initial biots at random position.
          */
         for (int i = 0; i < Utils.NO_OF_INITIAL_BIOTS; i++) {
-//            final Limb e = Biot.createLimb(i);
-            final Biot biot1 = new Biot();
-            goLive(root, allLimbs, biot1);
+            goLive(root, allBiots, new Biot(0,
+                    Utils.r.nextFloat() * (Utils.WIDTHd2 - 3 * Utils.LIMB_SIZE) + Utils.LIMB_SIZE,
+                    Utils.r.nextFloat() * (Utils.HEIGHTd2 - 3 * Utils.LIMB_SIZE) + Utils.LIMB_SIZE));
         }
 
-        Utils.fourWalls();
 
         final Timeline timeline = new Timeline();
         timeline.setCycleCount(Timeline.INDEFINITE);
 
-        Duration duration = Duration.seconds(1.0 / 40.0); // Set duration for frame.
+        Duration duration = Duration.seconds(Utils.DT); // Set duration for frame.
 
         //Create an ActionEvent, on trigger it executes a world time step and moves the balls to new position
         EventHandler<ActionEvent> ae = new EventHandler<ActionEvent>() {
 
             public void handle(ActionEvent t) {
                 //Create time step. Set Iteration count 8 for velocity and 3 for positions
-                Utils.world.step(1.0f / 40.f, 8, 3);
+                Utils.world.step(Utils.DT, 8, 3);
 
                 //Move balls to the new position computed by JBox2D
-                final ArrayList<Limb> died = new ArrayList<Limb>();
-                final ArrayList<Limb> mammies = new ArrayList<Limb>();
+                final ArrayList<Biot> died = new ArrayList<>();
+                final ArrayList<Biot> mammies = new ArrayList<>();
 
-                for (Limb limb : allLimbs) {
+                for (Biot biot : allBiots) {
+                    biot.updateState(died, mammies, selected);
 
-                  final   Body body = limb.bodyd2;
-                    assert body != null : "No body for " + limb;
 
-                    if (limb == selected) {
-                        updateSelectionFrame(limb, body, root);
+                    if (biot == selected) {
+                        updateSelectionFrame(biot, root);
                     }
-
-                    // draw position it
-                    limb.node.setLayoutX(Utils.toPixelPosX(body.getPosition().x - limb.w / 2f));
-                    limb.node.setLayoutY(Utils.toPixelPosY(body.getPosition().y + limb.h / 2f));
-                    limb.node.setRotate(-Math.toDegrees(body.getAngle()));
-                    ((Rectangle) limb.node).setFill(limb.getFill());
-
-                    limb.updateEnergy(died, mammies);
                 }
 
-                for (Limb dead : died) {
+                for (Biot dead : died) {
                     assert dead.isDead() : dead + " is not dead!? ";
-                    if (dead.deadSince() > 120) { // let zombies float around for 2s
-                        Utils.world.destroyBody(dead.bodyd2);
-                        allLimbs.remove(dead);
-                        root.getChildren().remove(dead.node);
-//                    } else {
-//                        System.err.println("zombie = " + dead);
+                    if (dead.deadSince() > (3 / Utils.DT)) { // let zombies float around for 3s
+                        dead.destroyBiot(root);
+                        allBiots.remove(dead);
                     }
-
                 }
-//                for (Limb mom : mammies) {
-//                    if (allLimbs.size() < Utils.MAX_BIOTS) {
-//                        final Limb child = mom.createChild();
-//                        goLive(root, allLimbs, child);
-//                    }
-//                }
 
+                for (Biot mom : mammies) {
+                    if (allBiots.size() < Utils.MAX_BIOTS) {
+                        final Biot child = mom.createChild();
+                        goLive(root, allBiots, child);
+                    }
+                }
             }
         };
+
 
 
         /**
@@ -168,65 +152,52 @@ public class EAMainFXandBox2d extends Application {
         primaryStage.show();
     }
 
-    private void updateSelectionFrame(Limb limb, Body body, Group root) {
-        assert limb == selected;
-        if (limb.isDead()) {
+    private void updateSelectionFrame(Biot biot, Group root) {
+        assert biot == selected;
+        if (biot.isDead()) {
             // clean up the selection frame!
             selected = null;
             root.getChildren().remove(selectionFrame);
             selectionFrame = null;
         } else {
-            // die richtige position des FXRechtecks muss ausgerechnet werden: ??!! wie macht man das wirklich??
-            final Transform transform = new Transform();
-            AABB aabb = new AABB(new Vec2(Float.MAX_VALUE, Float.MAX_EXPONENT), new Vec2(Float.MIN_VALUE, Float.MIN_VALUE));
-//
-            Fixture fixture = body.getFixtureList();
-            while (fixture != null) {
-                final Shape shape = fixture.getShape();
-                final int childCount = shape.getChildCount();
-
-                for (int child = 0; child < childCount; child++) {
-                    AABB shapeAABB = new AABB();
-                    shape.computeAABB(shapeAABB, transform, child);
-                    final float radius = shape.getRadius();
-                    aabb.upperBound.x -= radius;
-                    aabb.upperBound.y -= radius;
-                    aabb.lowerBound.x += radius;
-                    aabb.lowerBound.y += radius;
-                    aabb.combine(shapeAABB);
-                }
-                fixture = fixture.getNext();
-            }
+            AABB aabb = biot.getAABB();
             Vec2 extents = aabb.getExtents();
-            extents = extents.mul(1.5f);
-            ////   jetzt haben wir die bouding box, aber die ist ja zu gross!
-            selectionFrame.setLayoutX(Utils.toPixelPosX(body.getPosition().x - extents.x));
-            selectionFrame.setLayoutY(Utils.toPixelPosY(body.getPosition().y + extents.y));
+            final Vec2 center = aabb.getCenter();
+
+            selectionFrame.setLayoutX(Utils.toPixelPosX(center.x - extents.x));
+            selectionFrame.setLayoutY(Utils.toPixelPosY(center.y + extents.y));
             selectionFrame.setHeight(Utils.toPixelHeight(2 * extents.y));
             selectionFrame.setWidth(Utils.toPixelWidth(2 * extents.x));
         }
     }
 
 
-    private void goLive(Group root, ArrayList<Limb> allDisplayedLimbs, final Biot e) {
-        for (Limb limb : e.limbs) {
-            allDisplayedLimbs.add(limb);
+    private void goLive(Group root, ArrayList<Biot> allBiots, final Biot e) {
+        e.goLive(root, this);
+        allBiots.add(e);
+    }
 
-            limb.createBodyAndNode();
+    static class MouseEventEventHandler implements EventHandler<MouseEvent> {
+        private final Limb limb;
+        private final Group root;
+        private EAMainFXandBox2d eaMainFXandBox2d;
 
-            final Node node = limb.node;
-            root.getChildren().add(node);
+        public MouseEventEventHandler(EAMainFXandBox2d eaMainFXandBox2d, Limb limb, Group root) {
+            this.limb = limb;
+            this.root = root;
+            this.eaMainFXandBox2d = eaMainFXandBox2d;
+        }
 
-            node.setOnMousePressed(event -> {
-                System.err.println("selected Limb: " + limb);
-                selected = limb;
-                if (selectionFrame == null) {
-                    selectionFrame = new Rectangle(0, 0, Color.TRANSPARENT);
-                    selectionFrame.setStroke(Color.GHOSTWHITE);
-                    root.getChildren().add(selectionFrame);
-                }
-                updateSelectionFrame(selected,limb.bodyd2,root);
-            });
+        @Override
+        public void handle(MouseEvent event) {
+            System.err.println("selected Biot: " + limb.biot);
+            eaMainFXandBox2d.selected = limb.biot;
+            if (eaMainFXandBox2d.selectionFrame == null) {
+                eaMainFXandBox2d.selectionFrame = new Rectangle(0, 0, Color.TRANSPARENT);
+                eaMainFXandBox2d.selectionFrame.setStroke(Color.GHOSTWHITE);
+                root.getChildren().add(eaMainFXandBox2d.selectionFrame);
+            }
+            eaMainFXandBox2d.updateSelectionFrame(eaMainFXandBox2d.selected, root);
         }
     }
 }

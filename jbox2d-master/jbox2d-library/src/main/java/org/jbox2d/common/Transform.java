@@ -173,7 +173,7 @@ public class Transform implements Serializable {
   public final String toString() {
     String s = "XForm:\n";
     s += "Position: " + p + "\n";
-    s += "R: \n" + q + "\n";
+    s += "R: \n" + q + " = " +q.getAngle()+ " \n";
     return s;
   }
 }
