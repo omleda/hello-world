@@ -124,7 +124,7 @@ public class Limb {
 
 // once per limb!
         switch (limbTyp) {
-            case EATER: {// this is an red limb!
+            case RED: {// this is an red limb!
                 // the living of red is expensive
                 final float v = -Utils.LIVINGCostOfRedLimb * (float) Math.sqrt(w * w + h * h);
                 deltaEnergy = v;
@@ -132,8 +132,8 @@ public class Limb {
                 if (debug) sb.append("\n  red looses ").append(v);
                 break;
             }
-            case ENERGY: { // this is green
-                final float v = Utils.SUNRADIATION * (float) Math.sqrt(w * h);
+            case GREEN: { // this is green
+                final float v = Utils.SUNRADIATION * (float) Math.sqrt(w * w + h * h);
                 deltaEnergy = v;
                 if (debug) sb.append("\n  green wins ").append(v);
                 break;
@@ -151,18 +151,18 @@ public class Limb {
         }
         for (Limb other : limbs) {
             switch (limbTyp) {
-                case EATER: {// this is an eater!
-                    if (other.limbTyp == LimbTyp.ENERGY) { // only eater touching energy
+                case RED: {// this is an eater!
+                    if (other.limbTyp == LimbTyp.GREEN) { // only eater touching energy
                         // collision with other limb gives energy to this limb
                         float l = Utils.EAT_EFFICIENCY * Math.max(w, h); // take acc to red size.
                         deltaEnergy += l;
                         // and removes from the other
 //                            other.removeEnergy(died, l);
                         if (debug) sb.append("\n : took ").append(l).append(" from ").append(other.biot.id);
-                    } else if (other.limbTyp == LimbTyp.EATER) {
+                    } else if (other.limbTyp == LimbTyp.RED) {
                         // collision with other limb gives energy to this limb
                         // symmetrical hurt.
-                        float l = -Utils.RED_HURTS_RED * (float) Math.sqrt(w * other.w + h * other.h);
+                        float l = -Utils.RED_HURTS_RED * Math.max(other.w, other.h);
                         deltaEnergy += l;
 
                         // hitting a red one hurts myself too
@@ -171,12 +171,12 @@ public class Limb {
                     }
                     break;
                 }
-                case ENERGY: {
-                    if (other.limbTyp == LimbTyp.EATER) { // only eater touching energy
+                case GREEN: {
+                    if (other.limbTyp == LimbTyp.RED) { // only eater touching energy
                         float l = -Utils.EAT_EFFICIENCY * Math.max(other.w, other.h); // give according to red size
                         deltaEnergy += l;
                         if (debug) sb.append("\n : lost ").append(l).append(" by attack of ").append(other.biot.id);
-                    } else if (other.limbTyp == LimbTyp.ENERGY) {
+                    } else if (other.limbTyp == LimbTyp.GREEN) {
                         // green just bounces on green
                         if (debug) sb.append("\n : touched other green ").append(other.biot.id);
                     }
@@ -334,8 +334,8 @@ public class Limb {
 
 
     enum LimbTyp {
-        EATER(Color.RED, "R"),
-        ENERGY(Color.GREEN, "G");
+        RED(Color.RED, "R"),
+        GREEN(Color.GREEN, "G");
 
         private final String s;
         private Color color;
@@ -355,8 +355,8 @@ public class Limb {
         }
 
         public LimbTyp other() {
-            if (this == EATER) return ENERGY;
-            else return EATER;
+            if (this == RED) return GREEN;
+            else return RED;
         }
     }
 

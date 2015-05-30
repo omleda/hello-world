@@ -8,10 +8,7 @@ import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.joints.RevoluteJoint;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by ea on 23.04.15.
@@ -65,7 +62,7 @@ public class Biot {
                 yPos, // Utils.HEIGHTd2 / 2 + (1 + Utils.LIMB_SIZE) * 0, // YPos
                 Utils.LIMB_SIZE / 4, // width
                 Utils.LIMB_SIZE * 4, // height
-                Limb.LimbTyp.ENERGY,
+                Limb.LimbTyp.GREEN,
                 // values of initial generation
                 0.9f,// density
                 0.3f, // friction
@@ -87,7 +84,7 @@ public class Biot {
                 yPos + tr.p.y,
                 Utils.LIMB_SIZE * 3, // width
                 Utils.LIMB_SIZE / 3, // height
-                (Limb.LimbTyp.EATER),
+                (Limb.LimbTyp.RED),
                 // values of initial generation
                 0.9f,// density
                 0.3f, // friction
@@ -126,7 +123,7 @@ public class Biot {
         limbJoints.put(joint, j12);
 
         birthEnergy = Utils.InitialBIRTHENERGY;
-        energy = 120f;
+        energy = Utils.InitialBIRTHENERGY / 8f;
 
     }
 
@@ -135,9 +132,9 @@ public class Biot {
         this.id = s_IDMAX++;
         generation = mom.generation + 1;
         birthEnergy = mom.getBirthEnergy() * Utils.RandomInPercentageRange(0.005f);
-        energy = birthEnergy;
+        energy = mom.getBirthEnergy() / 8f;
         maxAge = Math.round(mom.getMaxAge() * Utils.RandomInPercentageRange(0.005f));
-        age = maxAge;
+        age = mom.getMaxAge();
 
 //        System.err.println("birthEnergy = " + birthEnergy);
 
@@ -255,13 +252,12 @@ public class Biot {
     - fill died Biots
     - fill pregnant Biots
      */
-    public void updateState(ArrayList<Biot> died, ArrayList<Biot> mammies, Biot selected) {
+    public void updateState(ArrayList<Biot> died, TreeSet<Biot> mammies, Biot selected) {
         for (Limb next : limbs) {
             /// in any case: draw the limbs
             next.drawLimb();
         }
 
-        final boolean debug = (selected == this && age % 10 == 0);
         StringBuilder sb = new StringBuilder("Biot.updateState: " + this);
 
         if (died.contains(this)) {
@@ -269,6 +265,7 @@ public class Biot {
         }
 
         age -= 1;
+        final boolean debug = (selected == this && age % 10 == 0);
 
         if (age <= 0) {
             // dead limbs are re-added
@@ -290,21 +287,17 @@ public class Biot {
 //            next.drawLimb();
         }
 
-        if (debug) {
-//            System.err.println(sb.toString() + " total delta Energy: " + deltaEnergy);
-            System.err.println("this = " + this);
-        }
 
 //        updateEnergy:
         energy += deltaEnergy;
 
         if (energy >= birthEnergy) {
             mammies.add(this);
-            // in any case remove the energy as if the birth took place!
-            energy -=  birthEnergy;  // giving birth costs a lot!
-//            if (debug) {
-//                System.err.println("mom: new Energy: " + energy);
-//            }
+        }
+
+        if (debug) {
+//            System.err.println(sb.toString() + " total delta Energy: " + deltaEnergy);
+            System.err.println("selected: " + this);
         }
 
 
@@ -353,7 +346,7 @@ public class Biot {
 
     @Override
     public String toString() {
-        return "Biot#" + id + ": gen=" + generation + " age=" + age + " energy=" + energy;
+        return String.format("Biot#%04d gen%-4d age=%4d energy=%9.1f", id, generation, age, energy);
     }
 
     public void goLive(Group root, EAMainFXandBox2d eaMainFXandBox2d) {
@@ -371,7 +364,9 @@ public class Biot {
         return aabb;
     }
 
-    public Biot createChild() {
+    public Biot createChild(ArrayList<Biot> died) {
+        energy -= birthEnergy;  // giving birth costs a lot!
+        if (isDead()) died.add(this);
         return new Biot(this);
     }
 

@@ -48,13 +48,13 @@ public class Utils {
 
     static final long MAXAGE = 8500;  // 8500*DT / 60 = 5.6 Minutes of life time max
 
-    static final float EAT_EFFICIENCY = 4.3f;
+    static final float EAT_EFFICIENCY = 10.6f;
 
-    static final float RED_HURTS_RED = 0.8f;
+    static final float RED_HURTS_RED = 2.8f;
 
-    static final float SUNRADIATION = 80f / 25f;
+    static final float SUNRADIATION = 1.2f;
 
-    static final float LIVINGCostOfRedLimb = 0.01f; // 0.04f;
+    static final float LIVINGCostOfRedLimb = 1.19f; // 0.04f;
 
     // the random generator
     static Random r = new Random(System.currentTimeMillis());

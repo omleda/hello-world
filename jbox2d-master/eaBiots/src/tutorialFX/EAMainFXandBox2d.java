@@ -22,6 +22,8 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.BodyType;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.TreeSet;
 
 /**
  * @author dilip
@@ -74,43 +76,42 @@ public class EAMainFXandBox2d extends Application {
 
         Duration duration = Duration.seconds(Utils.DT); // Set duration for frame.
 
+        final ArrayList<Biot> died = new ArrayList<>();
+        final TreeSet<Biot> mammies = new TreeSet<>((Biot o1, Biot o2) -> (o1.energy > o2.energy ? 0 : 1));
+
         //Create an ActionEvent, on trigger it executes a world time step and moves the balls to new position
-        EventHandler<ActionEvent> ae = new EventHandler<ActionEvent>() {
+        EventHandler<ActionEvent> ae = t -> {
+            //Create time step. Set Iteration count 8 for velocity and 3 for positions
+            Utils.world.step(Utils.DT, 6, 3);
 
-            public void handle(ActionEvent t) {
-                //Create time step. Set Iteration count 8 for velocity and 3 for positions
-                Utils.world.step(Utils.DT, 8, 3);
+            died.clear();
+            mammies.clear();
 
-                //Move balls to the new position computed by JBox2D
-                final ArrayList<Biot> died = new ArrayList<>();
-                final ArrayList<Biot> mammies = new ArrayList<>();
+            for (Biot biot : allBiots) {
+                biot.updateState(died, mammies, selected);
 
-                for (Biot biot : allBiots) {
-                    biot.updateState(died, mammies, selected);
-
-
-                    if (biot == selected) {
-                        updateSelectionFrame(biot, root);
-                    }
+                if (biot == selected) {
+                    updateSelectionFrame(biot, root);
                 }
+            }
 
-                for (Biot dead : died) {
-                    assert dead.isDead() : dead + " is not dead!? ";
-                    if (dead.deadSince() > (3 / Utils.DT)) { // let zombies float around for 3s
-                        dead.destroyBiot(root);
-                        allBiots.remove(dead);
-                    }
-                }
+            Iterator<Biot> iterator = mammies.iterator();
 
-                for (Biot mom : mammies) {
-                    if (allBiots.size() < Utils.MAX_BIOTS) {
-                        final Biot child = mom.createChild();
-                        goLive(root, allBiots, child);
-                    }
+            while (iterator.hasNext() && allBiots.size() < Utils.MAX_BIOTS) {
+                Biot mom = iterator.next();
+//                System.err.println("Mom:" + mom + " mom.birthEnergy=" + mom.getBirthEnergy());
+                final Biot child = mom.createChild(died);
+                goLive(root, allBiots, child);
+            }
+
+            for (Biot dead : died) {
+                assert dead.isDead() : dead + " is not dead!? ";
+                if (dead.deadSince() > Math.round(3f / Utils.DT)) { // let zombies float around for 3s
+                    dead.destroyBiot(root);
+                    allBiots.remove(dead);
                 }
             }
         };
-
 
 
         /**
